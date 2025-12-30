@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Opcional: um estilo base para o corpo */
+body {
+  @apply bg-gray-50 font-sans text-gray-900;
+  margin: 0;
+  padding: 0;
+}
