@@ -5,7 +5,6 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 import PublicDriverInfo from '../pages/public/DriverInfo';
 
 // Componentes temporários só para teste
-const QRCodePage = () => <h1>Leitura de QR Code (Público)</h1>;
 const OperatorDashboard = () => <h1 className="p-8 text-2xl">Área do Operador 🚛</h1>;
 const DriverDashboard = () => <h1 className="p-8 text-2xl">Área do Motorista 🚗</h1>;
 const OperadoresList = () => <h1>Lista de Operadores (Em breve)</h1>;

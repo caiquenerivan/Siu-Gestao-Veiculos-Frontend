@@ -1,4 +1,3 @@
-import React from 'react';
 import { ClipboardCheck, Truck, AlertTriangle } from 'lucide-react';
 
 export function OperatorDashboard() {
