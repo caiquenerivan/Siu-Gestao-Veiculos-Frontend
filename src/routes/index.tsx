@@ -9,7 +9,6 @@ import { DriverList } from '../components/DriverList';
 const OperatorDashboard = () => <h1 className="p-8 text-2xl">Área do Operador 🚛</h1>;
 const DriverDashboard = () => <h1 className="p-8 text-2xl">Área do Motorista 🚗</h1>;
 const OperadoresList = () => <h1>Lista de Operadores (Em breve)</h1>;
-const MotoristasList = () => <h1>Lista de Motoristas (Em breve)</h1>;
 const VeiculosList = () => <h1>Lista de Veículos (Em breve)</h1>;
 
 export function AppRoutes() {
