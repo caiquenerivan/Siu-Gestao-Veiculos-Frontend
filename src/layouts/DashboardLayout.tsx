@@ -44,7 +44,7 @@ export function DashboardLayout() {
   // ---------------------------
 
   return (
-    <div className="flex h-screen bg-gray-100 m-0">
+    <div className="flex h-screen bg-gray-100 m-auto">
       {/* Sidebar */}
       <aside 
         className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-slate-900 text-white transition-all duration-300 flex flex-col`}

@@ -3,6 +3,7 @@ import { Login } from '../pages/public/Login';
 import { AdminDashboard } from '../pages/admin/Dashboard';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import PublicDriverInfo from '../pages/public/DriverInfo';
+import { DriverList } from '../components/DriverList';
 
 // Componentes temporários só para teste
 const OperatorDashboard = () => <h1 className="p-8 text-2xl">Área do Operador 🚛</h1>;
@@ -23,7 +24,7 @@ export function AppRoutes() {
         <Route path="/admin" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="motoristas" element={<MotoristasList />} />
+          <Route path="motoristas" element={<DriverList />} />
           <Route path="operadores" element={<OperadoresList />} />
           <Route path="veiculos" element={<VeiculosList />} />
           {/* ... outras rotas admin ... */}
