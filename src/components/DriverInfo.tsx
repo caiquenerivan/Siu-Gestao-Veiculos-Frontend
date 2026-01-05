@@ -4,8 +4,6 @@ import {
   User, 
   Mail, 
   Calendar, 
-  FileText, 
-  CreditCard,
   Briefcase,
   Van,
   IdCard,
