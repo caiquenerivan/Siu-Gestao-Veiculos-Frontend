@@ -1,47 +1,11 @@
 import axios from "axios";
-import { Car, ChevronLeft, ChevronRight, Edit, QrCode, Search } from "lucide-react";
+import { Car, ChevronLeft, ChevronRight, Edit, Eye, QrCode, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import DriverQRCodeModal from "./QrCode";
+import DriverInfoModal from "./DriverInfo";
+import type { Driver, DriversResponse, PaginationMeta } from "../types";
 
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  isActive: boolean;
-}
 
-// 2. O que vem dentro de 'vehicle'
-interface VehicleData {
-  id: string;
-  model: string;
-  plate: string;
-  brand: string;
-}
-
-// 3. O objeto Motorista completo
-interface Driver {
-  id: string;
-  cnh: string;
-  status: 'PENDENTE' | 'ATIVO' | 'BLOQUEADO'; // Union type para o Enum
-  photoUrl?: string; // Opcional
-  publicToken: string;
-  createdAt: string; // Vem como string ISO do JSON
-  user: UserData;    // Relação obrigatória
-  vehicle?: VehicleData | null; // Relação opcional (pode ser null)
-}
-
-// 4. Metadados da Paginação
-interface PaginationMeta {
-  total: number;
-  page: number;
-  lastPage: number;
-  limit: number;
-}
-
-// 5. Resposta da API
-interface DriversResponse {
-  data: Driver[];
-  meta: PaginationMeta;
-}
 
 export const DriverList: React.FC = () => {
   // --- Estados Tipados ---
@@ -51,6 +15,11 @@ export const DriverList: React.FC = () => {
   // Paginação
   const [page, setPage] = useState<number>(1);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
+
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [infoDriver, setInfoDriver] = useState<Driver | null>(null);
+
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
   const LIMIT = 10;
 
@@ -63,7 +32,7 @@ export const DriverList: React.FC = () => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-      });
+      });      
       
       setDrivers(response.data.data);
       setMeta(response.data.meta);
@@ -79,10 +48,14 @@ export const DriverList: React.FC = () => {
   }, [page]);
 
   // --- Helpers de Formatação ---
+  /*
   
   const formatDate = (dateString: string) => {
     return new Intl.DateTimeFormat('pt-BR').format(new Date(dateString));
   };
+  
+  */
+
 
   const getStatusStyle = (status: string) => {
     const styles: Record<string, string> = {
@@ -91,6 +64,11 @@ export const DriverList: React.FC = () => {
       PENDENTE: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     };
     return styles[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleViewDetails = (driver: Driver) => {
+    setInfoDriver(driver);
+    setIsDetailsOpen(true);
   };
 
   // --- Renderização ---
@@ -174,7 +152,14 @@ export const DriverList: React.FC = () => {
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button 
-                            onClick={() => alert(`Abrir QR Code: ${driver.publicToken}`)}
+                            title="Ver Dados" 
+                            className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                            onClick={() => handleViewDetails(driver)}
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button 
+                            onClick={() => setSelectedDriver(driver)} // <--- AQUI
                             title="Ver QR Code" 
                             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                           >
@@ -187,6 +172,8 @@ export const DriverList: React.FC = () => {
                           >
                             <Edit size={18} />
                           </button>
+
+                          
                         </div>
                       </td>
                     </tr>
@@ -232,9 +219,24 @@ export const DriverList: React.FC = () => {
               </button>
             </div>
           </div>
-
         </div>
       </div>
+
+      {selectedDriver && (
+        <DriverQRCodeModal 
+          driver={selectedDriver} 
+          onClose={() => setSelectedDriver(null)} 
+        />
+      )}
+      {infoDriver && (
+
+        <DriverInfoModal
+          isOpen={isDetailsOpen} 
+          onClose={() => setIsDetailsOpen(false)} 
+          driver={infoDriver} 
+        />
+      )
+      }
     </div>
   );
 };

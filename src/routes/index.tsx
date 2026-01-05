@@ -10,6 +10,7 @@ const OperatorDashboard = () => <h1 className="p-8 text-2xl">Área do Operador �
 const DriverDashboard = () => <h1 className="p-8 text-2xl">Área do Motorista 🚗</h1>;
 const OperadoresList = () => <h1>Lista de Operadores (Em breve)</h1>;
 const VeiculosList = () => <h1>Lista de Veículos (Em breve)</h1>;
+const EditProfile = () => <h1>Editar Perfil (Em breve)</h1>;
 
 export function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ export function AppRoutes() {
           <Route path="motoristas" element={<DriverList />} />
           <Route path="operadores" element={<OperadoresList />} />
           <Route path="veiculos" element={<VeiculosList />} />
+          <Route path="editarperfil" element={<EditProfile />} />
           {/* ... outras rotas admin ... */}
         </Route>
 
@@ -33,6 +35,8 @@ export function AppRoutes() {
         <Route path="/operator" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/operator/dashboard" replace />} />
           <Route path="dashboard" element={<OperatorDashboard />} />
+          <Route path="motoristas" element={<DriverList />} />
+          <Route path="veiculos" element={<VeiculosList />} />
           {/* Exemplo de placeholder para evitar erro 404 ao clicar no menu */}
           <Route path="movimentacoes" element={<h1>Movimentações</h1>} />
           <Route path="checklists" element={<h1>Checklists</h1>} />

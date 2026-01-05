@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Menu, X, LayoutDashboard, Users, Truck, FileText } from 'lucide-react';
+import { LogOut, Menu, X, LayoutDashboard, Users, Truck, FileText, UserRoundPen } from 'lucide-react';
 
 export function DashboardLayout() {
   const navigate = useNavigate();
@@ -24,15 +24,18 @@ export function DashboardLayout() {
       { label: 'Operadores', icon: <Users size={20} />, path: '/admin/operadores' },
       { label: 'Motoristas', icon: <FileText size={20} />, path: '/admin/motoristas' },
       { label: 'Veículos', icon: <Truck size={20} />, path: '/admin/veiculos' },
+      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/admin/editarperfil' },
     ],
     OPERATOR: [
       { label: 'Painel', icon: <LayoutDashboard size={20} />, path: '/operator/dashboard' },
       { label: 'Saídas/Entradas', icon: <Truck size={20} />, path: '/operator/movimentacoes' },
       { label: 'Checklists', icon: <FileText size={20} />, path: '/operator/checklists' },
+      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/admin/editarperfil' },
     ],
     DRIVER: [
       { label: 'Meu Painel', icon: <LayoutDashboard size={20} />, path: '/driver/dashboard' },
       { label: 'Minhas Viagens', icon: <Truck size={20} />, path: '/driver/viagens' },
+      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/admin/editarperfil' },
     ]
   };
 
