@@ -2,7 +2,8 @@ import axios from 'axios';
 import type { CreateDriverData, Driver, UpdateDriverData } from '../types';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Sua API NestJS
+  baseURL: 'https://siu-backend.onrender.com', // Sua API NestJS
+  //baseURL: 'http://localhost:3000', // Sua API NestJS
 });
 
 // Interceptor para adicionar o Token automaticamente quando logado
