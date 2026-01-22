@@ -1,4 +1,3 @@
-import axios from "axios";
 import { Car, ChevronLeft, ChevronRight, Edit, Eye, QrCode, Search, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import DriverQRCodeModal from "../QrCode";
@@ -35,7 +34,7 @@ export const DriverList: React.FC = () => {
     try {
       setLoading(true);
       // O axios.get recebe o tipo <DriversResponse> para o TS entender o retorno
-      const response = await axios.get<DriversResponse>(`${api}/drivers?page=${page}&limit=${LIMIT}`, {
+      const response = await api.get<DriversResponse>(`/drivers?page=${page}&limit=${LIMIT}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
