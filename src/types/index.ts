@@ -31,7 +31,7 @@ export interface UpdateDriverData {
   // Dados Profissionais
   name: string;
   email: string;
-  password: string;
+  password?: string;
   cnh: string;
   company: string;
   status: string;

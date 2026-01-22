@@ -38,7 +38,6 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
     cnh: '',
     company: '',
     status: 'PENDENTE',
-    password: '',
     photoUrl: '',
     toxicologyExam: '',
   });
@@ -53,7 +52,6 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
         company: driver.company || '',
         status: driver.status || 'PENDENTE',
         photoUrl: driver.photoUrl || '',
-        password: driver.user?.password || '',
         // Formata a data para YYYY-MM-DD para o input type="date"
         toxicologyExam: driver.toxicologyExam 
           ? new Date(driver.toxicologyExam).toISOString().split('T')[0] 
@@ -75,7 +73,6 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
     const payload: UpdateDriverData= {
       name: formData.name,
       email: formData.email,
-      password: formData.password,
       cnh: formData.cnh,
       company: formData.company,
       status: formData.status,
@@ -216,18 +213,6 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  placeholder="usuario@email.com"
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Email (Login)</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.password}
                   onChange={handleChange}
                   className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="usuario@email.com"
