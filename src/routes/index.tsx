@@ -3,7 +3,7 @@ import { Login } from '../pages/public/Login';
 import { AdminDashboard } from '../pages/admin/Dashboard';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import PublicDriverInfo from '../pages/public/DriverInfo';
-import { DriverList } from '../components/DriverList';
+import { DriverList } from '../components/Driver/DriverList';
 
 // Componentes temporários só para teste
 const OperatorDashboard = () => <h1 className="p-8 text-2xl">Área do Operador 🚛</h1>;

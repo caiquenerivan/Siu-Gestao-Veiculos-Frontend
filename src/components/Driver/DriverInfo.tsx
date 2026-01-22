@@ -10,39 +10,7 @@ import {
   Car,
   Pill
 } from 'lucide-react';
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  isActive: boolean;
-  createdAt: string;
-}
-
-// 2. O que vem dentro de 'vehicle'
-interface VehicleData {
-  id: string;
-  model: string;
-  plate: string;
-  brand: string;
-  color: string;
-  status: 'REGULAR' | 'FURTO' | 'IRREGULAR';
-  licensingDate: string;
-  ownerName: string;  
-}
-
-interface Driver {
-  id: string;
-  cnh: string;
-  status: 'PENDENTE' | 'ATIVO' | 'BLOQUEADO'; // Union type para o Enum
-  photoUrl?: string; // Opcional
-  publicToken: string;
-  createdAt: string; // Vem como string ISO do JSON
-  user: UserData;    // Relação obrigatória
-  vehicle?: VehicleData | null; // Relação opcional (pode ser null)
-  company: string;
-  toxicologyExam: string;
-}
+import type { Driver } from '../../types';
 
 interface DriverInfoModalProps {
   isOpen: boolean;

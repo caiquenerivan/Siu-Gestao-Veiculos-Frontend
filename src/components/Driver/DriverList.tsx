@@ -1,9 +1,13 @@
 import axios from "axios";
-import { Car, ChevronLeft, ChevronRight, Edit, Eye, QrCode, Search } from "lucide-react";
+import { Car, ChevronLeft, ChevronRight, Edit, Eye, QrCode, Search, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
-import DriverQRCodeModal from "./QrCode";
+import DriverQRCodeModal from "../QrCode";
 import DriverInfoModal from "./DriverInfo";
-import type { Driver, DriversResponse, PaginationMeta } from "../types";
+import type { CreateDriverData, Driver, DriversResponse, PaginationMeta, UpdateDriverData } from "../../types";
+import DriverCreateModal from "./CreateDriver";
+import { driverService } from "../../services/api";
+import DriverUpdateModal from "./EditDriver";
+// import { data } from "react-router-dom";
 
 
 
@@ -18,6 +22,9 @@ export const DriverList: React.FC = () => {
 
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [infoDriver, setInfoDriver] = useState<Driver | null>(null);
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
@@ -71,6 +78,73 @@ export const DriverList: React.FC = () => {
     setIsDetailsOpen(true);
   };
 
+  const handleDeleteDriver = async (id: string) => {
+    const confirmDelete = window.confirm("Tem certeza que deseja deletar este motorista?");
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+      await driverService.delete(id);
+      alert('Motorista deletado com sucesso!');
+      fetchDrivers();
+    } catch (error) {
+      console.error("Erro ao deletar motorista:", error);
+      alert('Erro ao deletar motorista. ' + error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateDriver = async (data:CreateDriverData) => {
+    setLoading(true);
+    try {
+      await driverService.create(data);
+      alert('Motorista criado com sucesso!');
+      setIsCreateModalOpen(false);
+      fetchDrivers();
+    } catch (error) {
+      console.error("Erro ao criar motorista:", error);
+      alert('Erro ao criar motorista. ' + error);
+    } finally {
+      setLoading(false);
+    }
+    // Lógica para abrir modal de criação de motorista
+    setIsCreateModalOpen(true);
+    console.log("Abrir modal de criação de motorista");
+  }
+
+  const handleUpdateDriver = async (driver: Driver) => {
+    setLoading(true);
+    try {
+      if (!driver) {
+        throw new Error('Motorista não selecionado para atualização.');
+      }
+      const data: UpdateDriverData = {
+        name: driver.user.name,
+        email: driver.user.email,
+        password: '', // Senha vazia, pois não será alterada aqui
+        cnh: driver.cnh,
+        company: driver.company,
+        status: driver.status,
+        photoUrl: driver.photoUrl || '',
+        toxicologyExam: driver.toxicologyExam ? new Date(driver.toxicologyExam) : null,
+      };
+
+      await driverService.update(driver.id, data);
+      alert('Motorista atualizado com sucesso!');
+      setIsEditModalOpen(false);
+      fetchDrivers();
+    } catch (error) {
+      console.error("Erro ao atualizar motorista:", error);
+      alert('Erro ao atualizar motorista. ' + error);
+    } finally {
+      setLoading(false);
+    }
+    // Lógica para abrir modal de criação de motorista
+    setIsEditModalOpen(true);
+    console.log("Abrir modal de edição de motorista");
+  }
+
   // --- Renderização ---
 
   return (
@@ -84,7 +158,7 @@ export const DriverList: React.FC = () => {
             <p className="text-gray-500 text-sm">Gerencie a frota e os acessos</p>
           </div>
           
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm">
+          <button onClick={() => setIsCreateModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm">
             + Adicionar Motorista
           </button>
         </div>
@@ -167,13 +241,20 @@ export const DriverList: React.FC = () => {
                           </button>
                           
                           <button 
+                            onClick={() => handleUpdateDriver(driver)}
                             title="Editar Dados" 
                             className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
                           >
                             <Edit size={18} />
                           </button>
 
-                          
+                          <button 
+                            onClick={() => handleDeleteDriver(driver.id)}
+                            title="Deletar Motorista" 
+                            className="p-2 text-red-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          >
+                            <Trash size={18} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -237,6 +318,25 @@ export const DriverList: React.FC = () => {
         />
       )
       }
+
+      {isCreateModalOpen && (
+        <DriverCreateModal 
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSave={handleCreateDriver}  
+          isLoading={loading}        
+        />
+      )}
+
+      {isEditModalOpen && (
+        <DriverUpdateModal 
+          driver={selectedDriver}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleUpdateDriver}
+          isLoading={loading}        
+        />
+      )}
     </div>
   );
 };

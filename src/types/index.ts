@@ -15,10 +15,35 @@ export interface Driver {
   toxicologyExam: string;
 }
 
+export interface CreateDriverData {  
+  // Dados Profissionais
+  name: string;
+  email: string;
+  password: string;
+  cnh: string;
+  company: string;
+  status: string;
+  photoUrl: string;
+  toxicologyExam: Date | null;
+}
+
+export interface UpdateDriverData {  
+  // Dados Profissionais
+  name: string;
+  email: string;
+  password: string;
+  cnh: string;
+  company: string;
+  status: string;
+  photoUrl: string;
+  toxicologyExam: Date | null;
+}
+
 export interface UserData {
   id: string;
   name: string;
   email: string;
+  password: string;
   isActive: boolean;
   createdAt: string;
 }
