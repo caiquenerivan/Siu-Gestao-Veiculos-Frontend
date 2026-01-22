@@ -5,7 +5,7 @@ import DriverQRCodeModal from "../QrCode";
 import DriverInfoModal from "./DriverInfo";
 import type { CreateDriverData, Driver, DriversResponse, PaginationMeta, UpdateDriverData } from "../../types";
 import DriverCreateModal from "./CreateDriver";
-import { driverService } from "../../services/api";
+import { api, driverService } from "../../services/api";
 import DriverUpdateModal from "./EditDriver";
 // import { data } from "react-router-dom";
 
@@ -35,7 +35,7 @@ export const DriverList: React.FC = () => {
     try {
       setLoading(true);
       // O axios.get recebe o tipo <DriversResponse> para o TS entender o retorno
-      const response = await axios.get<DriversResponse>(`http://localhost:3000/drivers?page=${page}&limit=${LIMIT}`, {
+      const response = await axios.get<DriversResponse>(`${api}/drivers?page=${page}&limit=${LIMIT}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
