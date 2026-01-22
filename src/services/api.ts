@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { CreateDriverData, Driver, UpdateDriverData } from '../types';
 
+
 export const api = axios.create({
   baseURL: 'https://siu-backend.onrender.com', // Sua API NestJS
   //baseURL: 'http://localhost:3000', // Sua API NestJS
@@ -14,6 +15,8 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+
 
 export const driverService = {
   create: async(driverData: CreateDriverData): Promise<Driver> => {
@@ -71,5 +74,5 @@ export const driverService = {
       console.error('Erro ao deletar motorista:', error);
       throw error;
     }
-  }
+  },
 };
