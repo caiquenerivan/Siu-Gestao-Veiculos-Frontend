@@ -3,7 +3,7 @@ import type { CreateDriverData, Driver, UpdateDriverData } from '../types';
 
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Interceptor para adicionar o Token automaticamente quando logado
