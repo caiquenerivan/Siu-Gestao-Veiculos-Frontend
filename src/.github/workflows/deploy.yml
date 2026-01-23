@@ -31,6 +31,10 @@ jobs:
       # 5. Gera o Build (Cria a pasta dist)
       - name: Build Project
         run: npm run build
+        env:
+          # O Vite lê automaticamente variáveis de ambiente que começam com VITE_
+          # se elas estiverem presentes no shell durante o build.
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       # 6. Envia para a Hostinger via FTP
       - name: FTP Deploy
