@@ -18,8 +18,6 @@ export function Login() {
         try {
             const response = await authService.login({ email, password });
 
-            console.log("Dados recebidos no login:", response);
-
             // 1. Verificação de segurança: O objeto user existe?
             if (!response?.user) {
                 throw new Error('Dados do usuário não retornados pelo servidor.');
