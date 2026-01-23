@@ -3,8 +3,8 @@ import type { CreateDriverData, Driver, UpdateDriverData } from '../types';
 
 
 export const api = axios.create({
-  //baseURL: import.meta.env.VITE_API_URL,
-  baseURL: 'https://siu-backend.onrender.com',
+  baseURL: import.meta.env.VITE_API_URL,
+  //baseURL: 'https://siu-backend.onrender.com',
 });
 
 // Interceptor para adicionar o Token automaticamente quando logado
