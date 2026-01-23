@@ -23,6 +23,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Se der 401 (Não autorizado), pode ser token vencido.
       // Opcional: localStorage.removeItem('token');
+      //alterar
       // Opcional: window.location.href = '/login';
     }
     return Promise.reject(error);
