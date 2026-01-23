@@ -112,6 +112,11 @@ export const DriverList: React.FC = () => {
     console.log("Abrir modal de criação de motorista");
   }
 
+  const handleOpenEditModal = (driver: Driver) => {
+    setSelectedDriver(driver);
+    setIsEditModalOpen(true);
+  };
+  /*
   const handleUpdateDriver = async (driver: Driver) => {
     setLoading(true);
     try {
@@ -141,8 +146,29 @@ export const DriverList: React.FC = () => {
     }
     // Lógica para abrir modal de criação de motorista
     setIsEditModalOpen(true);
-    console.log("Abrir modal de edição de motorista");
+    console.log(isEditModalOpen);
   }
+
+  
+
+  */
+
+  const handleSaveUpdate = async (data: UpdateDriverData) => {
+    if (!selectedDriver) return;
+    
+    setLoading(true);
+    try {
+      await driverService.update(selectedDriver.id, data);
+      alert('Motorista atualizado com sucesso!');
+      setIsEditModalOpen(false);
+      fetchDrivers();
+    } catch (error) {
+      console.error("Erro ao atualizar motorista:", error);
+      alert('Erro ao atualizar motorista.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // --- Renderização ---
 
@@ -240,7 +266,7 @@ export const DriverList: React.FC = () => {
                           </button>
                           
                           <button 
-                            onClick={() => handleUpdateDriver(driver)}
+                            onClick={() => handleOpenEditModal(driver)}
                             title="Editar Dados" 
                             className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
                           >
@@ -331,8 +357,11 @@ export const DriverList: React.FC = () => {
         <DriverUpdateModal 
           driver={selectedDriver}
           isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSave={handleUpdateDriver}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setSelectedDriver(null);
+          }}
+          onSave={handleSaveUpdate}
           isLoading={loading}        
         />
       )}

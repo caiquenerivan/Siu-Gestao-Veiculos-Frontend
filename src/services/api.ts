@@ -3,8 +3,8 @@ import type { CreateDriverData, Driver, UpdateDriverData } from '../types';
 
 
 export const api = axios.create({
-  //baseURL: import.meta.env.VITE_API_URL,
-  baseURL: 'https://siu-backend.onrender.com',
+  baseURL: import.meta.env.VITE_API_URL,
+  //baseURL: 'https://siu-backend.onrender.com',
 });
 
 // Interceptor para adicionar o Token automaticamente quando logado
@@ -62,7 +62,7 @@ export const driverService = {
       if (!token) {
         throw new Error('Usuário não autenticado');
       }
-      const response = await api.put<Driver>(`/drivers/${id}`, driverData, {
+      const response = await api.patch<Driver>(`/drivers/${id}`, driverData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

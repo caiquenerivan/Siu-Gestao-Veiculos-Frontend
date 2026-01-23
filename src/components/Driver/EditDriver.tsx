@@ -31,6 +31,7 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
 }) => {
 
 
+
   // Estado local para o formulário
   const [formData, setFormData] = useState({
     name: '',
@@ -44,6 +45,7 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
 
   // Popula o formulário quando o modal abre ou o driver muda
   useEffect(() => {
+    console.log("Modal isOpen:", isOpen);
     if (isOpen && driver) {
       setFormData({
         name: driver.user?.name || '',
