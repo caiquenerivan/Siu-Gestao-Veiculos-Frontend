@@ -17,7 +17,14 @@ export function Login() {
 
         try {
             const response = await authService.login({ email, password });
-            
+
+            console.log("Dados recebidos no login:", response);
+
+            // 1. Verificação de segurança: O objeto user existe?
+            if (!response?.user) {
+                throw new Error('Dados do usuário não retornados pelo servidor.');
+            }
+                
             // 1. Salva o token
             localStorage.setItem('token', response.access_token);
             
@@ -25,7 +32,7 @@ export function Login() {
             localStorage.setItem('user', JSON.stringify(response.user));
 
             // 3. Verifica a ROLE e redireciona (ajuste os nomes conforme seu banco de dados)
-            const role = response.user.role; // Pode ser maiúsculo ou minúsculo, verifique seu banco!
+            const role = response.user.role?.toUpperCase(); // Pode ser maiúsculo ou minúsculo, verifique seu banco!
 
             switch (role) {
                 case 'ADMIN':
@@ -40,13 +47,15 @@ export function Login() {
                 default:
                     // Se não tiver role definida ou for desconhecida
                     navigate('/login');
+                    console.warn("Role desconhecida:", role);
                     alert('Usuário sem perfil definido');
+                    localStorage.clear();
             }
 
         } catch (err: any) {
             console.error(err);
             // Tenta pegar a mensagem de erro do NestJS se ela existir
-            const message = err.response?.data?.message || 'Falha ao fazer login. Verifique suas credenciais.';
+            const message = err.response?.data?.message || err.message|| 'Falha ao fazer login. Verifique suas credenciais.';
             setError(Array.isArray(message) ? message[0] : message);
         } finally {
             setIsLoading(false);
