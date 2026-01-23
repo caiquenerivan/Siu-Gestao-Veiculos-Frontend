@@ -3,8 +3,7 @@ import type { CreateDriverData, Driver, UpdateDriverData } from '../types';
 
 
 export const api = axios.create({
-  baseURL: 'https://siu-backend.onrender.com', // Sua API NestJS
-  //baseURL: 'http://localhost:3000', // Sua API NestJS
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
 });
 
 // Interceptor para adicionar o Token automaticamente quando logado
@@ -14,8 +13,21 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Se der 401 (Não autorizado), pode ser token vencido.
+      // Opcional: localStorage.removeItem('token');
+      // Opcional: window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 
 export const driverService = {

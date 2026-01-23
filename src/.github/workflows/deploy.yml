@@ -1,0 +1,48 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main  # Ou 'master', verifique o nome da sua branch principal
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o código do repositório
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Instala o Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # 3. Instala as dependências
+      - name: Install Dependencies
+        run: npm install
+
+      # 4. Cria o arquivo .env de produção usando o segredo do GitHub
+      - name: Create .env file
+        run: echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env.production
+
+      # 5. Gera o Build (Cria a pasta dist)
+      - name: Build Project
+        run: npm run build
+
+      # 6. Envia para a Hostinger via FTP
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # Pasta local que será enviada (Onde o Vite gera o build)
+          local-dir: ./dist/
+          # Pasta na Hostinger (Geralmente public_html ou public_html/pasta)
+          server-dir: ./public_html/
+          # Perigoso: Deixe false se tiver arquivos lá que não quer apagar (ex: imagens de upload)
+          # Deixe true se quiser que o GitHub deixe a pasta idêntica ao build (apaga lixo antigo)
+          dangerous-clean-slate: true
