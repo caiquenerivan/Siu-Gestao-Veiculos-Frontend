@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, 
-  User, 
   Mail, 
   Briefcase,
   IdCard,
@@ -13,7 +12,6 @@ import {
   Upload
 } from 'lucide-react';
 import type { Driver } from '../../types'; // Ajuste o import conforme necessário
-import type { UpdateDriverData } from '../../types';
 
 interface DriverUpdateModalProps {
   isOpen: boolean;

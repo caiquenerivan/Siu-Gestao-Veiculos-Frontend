@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Car, User, Hash, Briefcase, Calendar, Palette, FileText, CarFront, CircleAlert } from 'lucide-react';
+import { X, Car, User, Briefcase, Calendar, Palette, FileText, CarFront, CircleAlert } from 'lucide-react';
 import type { Vehicle } from '../../types';
 
 interface VehicleInfoModalProps {

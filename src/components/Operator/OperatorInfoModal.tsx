@@ -6,8 +6,7 @@ import {
   Briefcase,
   MapPin,
   Building,
-  FileText,
-  Calendar
+  FileText
 } from 'lucide-react';
 import type { Operator } from '../../types'; // Certifique-se de importar o tipo Operator
 
@@ -21,11 +20,13 @@ const OperatorInfoModal: React.FC<OperatorInfoModalProps> = ({ isOpen, onClose, 
     if (!isOpen || !operator) return null;
 
   // Função auxiliar para formatar datas (se existir createdAt no seu tipo, senão pode remover)
+  /*
   const formatDate = (dateString?: string | Date) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
-
+  */
+  
   // Define a cor da badge baseada no Tipo
   const getTypeBadgeStyle = (type: string | null) => {
     return type === 'PF' 

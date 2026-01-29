@@ -2,7 +2,7 @@ import { Car, ChevronLeft, ChevronRight, Edit, Eye, QrCode, Search, Trash } from
 import { useEffect, useState } from "react";
 import DriverQRCodeModal from "../../components/QrCode";
 import DriverInfoModal from "../../components/Driver/DriverInfo";
-import type { CreateDriverData, Driver, DriversResponse, PaginationMeta, UpdateDriverData } from "../../types";
+import type { CreateDriverData, Driver, DriversResponse, PaginationMeta } from "../../types";
 import DriverCreateModal from "../../components/Driver/CreateDriver";
 import { api, driverService } from "../../services/api";
 import DriverUpdateModal from "../../components/Driver/EditDriver";

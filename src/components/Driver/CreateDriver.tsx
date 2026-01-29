@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'; // Adicione useEffect
 import { 
-  X, Mail, Briefcase, IdCard, Pill, Plus, Lock, Camera, CheckCircle, AlertCircle, Upload 
+  X, Mail, Briefcase, IdCard, Pill, Plus, Lock, Camera, Upload 
 } from 'lucide-react';
 
 // 1. Atualize a Interface para aceitar o arquivo opcional

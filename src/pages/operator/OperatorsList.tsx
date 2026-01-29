@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 //import OperatorInfoModal from "./OperatorInfo"; 
 //import OperatorCreateModal from "./CreateOperator";
 //import OperatorUpdateModal from "./EditOperator";
-import type { Operator, OperatorsResponse, PaginationMeta, CreateOperatorData, UpdateOperatorData } from "../../types";
+import type { Operator, OperatorsResponse, PaginationMeta, CreateOperatorData } from "../../types";
 import { api, operatorService } from "../../services/api"; // Assumindo existência do operatorService
 import OperatorCreateModal from "../../components/Operator/CreateOperator";
 import OperatorInfoModal from "../../components/Operator/OperatorInfoModal";
