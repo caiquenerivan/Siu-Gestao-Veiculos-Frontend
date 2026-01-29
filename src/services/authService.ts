@@ -23,7 +23,7 @@ export const authService = {
         
         // Ajuste a URL '/auth/login' se for diferente no seu backend
         const response = await api.post<LoginResponse>('/auth/login', data);
-        ;console.log(response);
+        console.log(response);
         return response.data;
     },
 };
