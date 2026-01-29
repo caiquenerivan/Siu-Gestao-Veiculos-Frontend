@@ -2,8 +2,8 @@ import axios from 'axios';
 import type { CreateDriverData, CreateOperatorData, CreateVehicleData, Driver, Operator, UpdateDriverData, UpdateOperatorData, UpdateVehicleData, Vehicle } from '../types';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  //baseURL: 'https://siu-backend.onrender.com',
+  //baseURL: import.meta.env.VITE_API_URL,
+  baseURL: 'https://siu-backend.onrender.com',
 });
 
 // Interceptor para adicionar o Token automaticamente quando logado
