@@ -26,16 +26,16 @@ export function DashboardLayout() {
       { label: 'Veículos', icon: <Truck size={20} />, path: '/admin/veiculos' },
       { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/admin/editarperfil' },
     ],
-    OPERATOR: [
+    OPERADOR: [
       { label: 'Painel', icon: <LayoutDashboard size={20} />, path: '/operator/dashboard' },
-      { label: 'Saídas/Entradas', icon: <Truck size={20} />, path: '/operator/movimentacoes' },
-      { label: 'Checklists', icon: <FileText size={20} />, path: '/operator/checklists' },
-      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/admin/editarperfil' },
+      { label: 'Motoristas', icon: <FileText size={20} />, path: '/operator/motoristas' },
+      { label: 'Veículos', icon: <Truck size={20} />, path: '/operator/veiculos' },
+      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/operator/editarperfil' },
     ],
-    DRIVER: [
+    MOTORISTA: [
       { label: 'Meu Painel', icon: <LayoutDashboard size={20} />, path: '/driver/dashboard' },
-      { label: 'Minhas Viagens', icon: <Truck size={20} />, path: '/driver/viagens' },
-      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/admin/editarperfil' },
+      { label: 'Veiculos', icon: <Truck size={20} />, path: '/driver/veiculos' },
+      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/driver/editarperfil' },
     ]
   };
 
@@ -93,7 +93,7 @@ export function DashboardLayout() {
       {/* Área Principal */}
       <main className="flex-1 overflow-auto">
         <header className="bg-white shadow-sm p-4 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-800">Painel Administrativo</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Painel Administrativo - SIU </h2>
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{user.name}</p>
@@ -105,7 +105,7 @@ export function DashboardLayout() {
           </div>
         </header>
 
-        <div className="p-6">
+        <div className="p-1 ">
           {/* O Outlet renderiza o conteúdo da página atual aqui dentro */}
           <Outlet />
         </div>

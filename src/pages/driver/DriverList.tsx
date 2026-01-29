@@ -1,11 +1,11 @@
 import { Car, ChevronLeft, ChevronRight, Edit, Eye, QrCode, Search, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
-import DriverQRCodeModal from "../QrCode";
-import DriverInfoModal from "./DriverInfo";
+import DriverQRCodeModal from "../../components/QrCode";
+import DriverInfoModal from "../../components/Driver/DriverInfo";
 import type { CreateDriverData, Driver, DriversResponse, PaginationMeta, UpdateDriverData } from "../../types";
-import DriverCreateModal from "./CreateDriver";
+import DriverCreateModal from "../../components/Driver/CreateDriver";
 import { api, driverService } from "../../services/api";
-import DriverUpdateModal from "./EditDriver";
+import DriverUpdateModal from "../../components/Driver/EditDriver";
 // import { data } from "react-router-dom";
 
 
@@ -151,8 +151,6 @@ export const DriverList: React.FC = () => {
 
   
 
-  */
-
   const handleSaveUpdate = async (data: UpdateDriverData) => {
     if (!selectedDriver) return;
     
@@ -169,6 +167,54 @@ export const DriverList: React.FC = () => {
       setLoading(false);
     }
   };
+  */
+
+  const handleSaveUpdate = async (data: any) => {
+  if (!selectedDriver) return;
+  
+  setLoading(true);
+  try {
+    const formData = new FormData();
+
+    // 1. Anexa a nova foto se o usuário selecionou uma
+    if (data.file) {
+      formData.append('file', data.file);
+    }
+
+    // 2. Anexa os campos de texto "soltos"
+    formData.append('name', data.name);
+    formData.append('email', data.email);
+    formData.append('cnh', data.cnh);
+    formData.append('company', data.company || '');
+    formData.append('status', data.status);
+    
+    if (data.toxicologyExam) {
+       formData.append('toxicologyExam', new Date(data.toxicologyExam).toISOString());
+    }
+
+    // Só envia senha se o usuário digitou algo
+    if (data.password && data.password.trim() !== '') {
+      formData.append('password', data.password);
+    }
+
+    // 3. Envia o PATCH
+    // Note que não usamos 'jsonData' aqui para simplificar, enviamos tudo solto
+    // Se quiser usar jsonData igual no create, teria que agrupar e fazer JSON.stringify
+    // Mas meu código do Controller acima (Passo 1) está preparado para receber SOLTO (body.name, body.email...)
+    
+    await api.patch(`/drivers/${selectedDriver.id}`, formData);
+
+    alert('Motorista atualizado com sucesso!');
+    setIsEditModalOpen(false);
+    fetchDrivers();
+  } catch (error) {
+    console.error("Erro ao atualizar motorista:", error);
+    alert('Erro ao atualizar motorista.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // --- Renderização ---
 

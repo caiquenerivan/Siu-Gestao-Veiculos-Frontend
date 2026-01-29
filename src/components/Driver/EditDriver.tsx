@@ -9,7 +9,8 @@ import {
   Save,
   Camera,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Upload
 } from 'lucide-react';
 import type { Driver } from '../../types'; // Ajuste o import conforme necessário
 import type { UpdateDriverData } from '../../types';
@@ -38,10 +39,13 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
     email: '',
     cnh: '',
     company: '',
-    status: 'PENDENTE',
+    status: 'REGULAR',
     photoUrl: '',
     toxicologyExam: '',
   });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
 
   // Popula o formulário quando o modal abre ou o driver muda
   useEffect(() => {
@@ -52,13 +56,15 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
         email: driver.user?.email || '',
         cnh: driver.cnh || '',
         company: driver.company || '',
-        status: driver.status || 'PENDENTE',
+        status: driver.status || 'REGULAR',
         photoUrl: driver.photoUrl || '',
         // Formata a data para YYYY-MM-DD para o input type="date"
         toxicologyExam: driver.toxicologyExam 
           ? new Date(driver.toxicologyExam).toISOString().split('T')[0] 
           : '',
       });
+      setPreviewUrl(driver.photoUrl || '');
+      setSelectedFile(null);
     }
   }, [isOpen, driver]);
 
@@ -69,23 +75,24 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file)); // Preview da nova foto
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const payload: UpdateDriverData= {
-      name: formData.name,
-      email: formData.email,
-      cnh: formData.cnh,
-      company: formData.company,
-      status: formData.status,
-      photoUrl: formData.photoUrl,
+    await onSave({
+      ...formData,
       toxicologyExam: formData.toxicologyExam ? new Date(formData.toxicologyExam) : null,
-    };
-    // Reconstrói a estrutura esperada pelo backend (separando User e Driver se necessário)
-    await onSave(payload);
-    onClose();
-  
+      file: selectedFile || undefined // Envia o arquivo se tiver
+    } as any);
   };
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <form 
@@ -95,7 +102,7 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
         
         {/* Header com Gradiente */}
         <div className="relative h-24 bg-gradient-to-r from-blue-600 to-blue-800 shrink-0">
-          <div className="absolute top-4 left-6 text-white/90 font-medium">
+          <div className="absolute top-4 left-6 my-2 text-white/90 font-medium">
             Editando Motorista
           </div>
           <button 
@@ -112,28 +119,23 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
           
           {/* Foto e Input de Nome (Sobreposto ao Header) */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end -mt-12 mb-8 gap-4">
-            <div className="relative group cursor-pointer">
-              <div className="w-24 h-24 rounded-full bg-white p-1 shadow-md relative overflow-hidden">
-                {formData.photoUrl ? (
-                  <img 
-                    src={formData.photoUrl} 
-                    alt="Preview" 
-                    className="w-full h-full rounded-full object-cover" 
-                  />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                    <User size={40} />
+            
+            <div className="relative group">
+                <input type="file" id="edit-photo" accept="image/*" onChange={handleFileChange} className="hidden" />
+                <label htmlFor="edit-photo" className="w-24 h-24 rounded-full bg-white p-1 shadow-md flex items-center justify-center overflow-hidden cursor-pointer">
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Foto" className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    <Camera className="text-gray-400" size={30} />
+                  )}
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-full transition-opacity">
+                    <Upload className="text-white" size={20} />
                   </div>
-                )}
-                {/* Overlay para simular upload */}
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                    <Camera className="text-white" size={24} />
-                </div>
-              </div>
-            </div>
+                </label>
+             </div>
             
             <div className="flex-1 w-full sm:w-auto z-20">
-              <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Nome Completo</label>
+              <label className="block text-sm font-sm font-semibold text-gray-500 uppercase mt-14 ml-1 ">Nome Completo</label>
               <input
                 type="text"
                 name="name"
@@ -235,20 +237,6 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
                     />
                 </div>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">URL da Foto</label>
-                <input
-                  type="text"
-                  name="photoUrl"
-                  value={formData.photoUrl}
-                  onChange={handleChange}
-                  className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm text-gray-600"
-                  placeholder="https://..."
-                />
-                <p className="text-[10px] text-gray-400">Cole o link direto da imagem aqui.</p>
-              </div>
-
             </div>
           </div>
         </div>

@@ -51,13 +51,17 @@ export interface UserData {
 // 2. O que vem dentro de 'vehicle'
 export interface VehicleData {
   id: string;
-  model: string;
   plate: string;
+  model: string;
   brand: string;
   color: string;
-  status: VehicleStatus;
+  year: string;
+  status?: VehicleStatus;
   licensingDate: string;
-  ownerName: string;  
+  renavam: string;
+  ownerName: string;
+  driverId?: string | null;
+  companyId?: string | null;
 }
 
 // 4. Metadados da Paginação
@@ -73,3 +77,209 @@ export interface DriversResponse {
   data: Driver[];
   meta: PaginationMeta;
 }
+
+export type OperatorType = 'PF' | 'PJ';
+
+// --- TIPO PRINCIPAL (Retorno do Banco/API) ---
+export interface Operator {
+  id: string;
+  userId: string;
+  
+  // Dados específicos do Model Operator
+  type: OperatorType | null; 
+  company: string | null;
+  region: string | null;
+  cpf: string | null;
+  cnpj: string | null;
+
+  // Relacionamento com User (Essencial para a tabela mostrar Nome/Email)
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    // role: 'OPERATOR'; // Opcional, se precisar
+  };
+}
+
+// --- TIPO PARA CRIAÇÃO (POST) ---
+// Junta dados do User (nome, email, senha) + dados do Operator
+export interface CreateOperatorData {
+  // Dados do User
+  name: string;
+  email: string;
+  password: string; // Obrigatória na criação
+
+  // Dados do Operator
+  type?: OperatorType;
+  company: string;
+  region: string;
+  cpf?: string;     // Opcional pois depende do tipoPessoa
+  cnpj?: string;    // Opcional pois depende do tipoPessoa
+}
+
+// --- TIPO PARA EDIÇÃO (PATCH) ---
+// Tudo opcional, pois podemos editar só um campo
+export interface UpdateOperatorData {
+  name?: string;
+  email?: string;
+  password?: string; // Se enviado, troca a senha. Se não, mantém.
+  
+  type?: OperatorType;
+  company?: string;
+  region?: string;
+  cpf?: string;
+  cnpj?: string;
+}
+
+// --- TIPOS DE RESPOSTA DA API (Paginação) ---
+
+export interface PaginationMeta {
+  total: number;
+  lastPage: number;
+  currentPage: number;
+  perPage: number;
+  prev: number | null;
+  next: number | null;
+}
+
+export interface OperatorsResponse {
+  data: Operator[];
+  meta: PaginationMeta;
+}
+
+// src/types/index.ts
+export interface Vehicle {
+  id: string;
+  plate: string;      // Placa
+  model: string;      // Modelo
+  brand: string;      // Marca
+  year: string;       // Ano
+  color: string;
+  renavam: string;    // RENAVAM
+  licensingDate: string; // Data de Licenciamento
+  ownerName: string;  // Nome do Proprietário
+  status?: VehicleStatus;
+  driverId?: string | null;
+  companyId?: string | null;
+
+  // Relacionamento opcional com Motorista (quem está dirigindo agora?)
+  driver?: {
+    id: string;
+    user: {
+      name: string;
+    }
+  } | null;
+  company?: {
+    id: string;
+    user: {
+      name: string;
+    }
+  } | null;
+}
+
+export interface VehiclesResponse {
+  data: Vehicle[];
+  meta: PaginationMeta;
+}
+
+export interface CreateVehicleData {
+  plate: string;
+  model: string;
+  brand: string;
+  year: string;
+  color: string;
+  renavam: string;
+  licensingDate: Date | null;
+  ownerName: string;
+  status?: VehicleStatus;
+  driverId?: string | null;
+  companyId?: string | null;
+}
+
+export interface UpdateVehicleData {
+  plate?: string;
+  model?: string;
+  brand?: string;
+  year?: string;
+  color?: string;
+  renavam?: string;
+  licensingDate?: Date | null;
+  ownerName?: string;
+  status?: VehicleStatus;
+  driverId?: string | null;
+  companyId?: string | null;
+}
+
+export const statusCarOptions = [
+  { value: 'REGULAR', label: 'Regular' },
+  { value: 'FURTO', label: 'Furto' },
+  { value: 'IRREGULAR', label: 'Irregular' },
+];
+
+export const yearCarOptions = [
+  "2024",
+  "2023",
+  "2022",
+  "2021",
+  "2020",
+  "2019",
+  "2018",
+  "2017",
+  "2016",
+  "2015",
+  "2014",
+  "2013",
+  "2012",
+  "2011",
+  "2010",
+  "2009",
+  "2008",
+  "2007",
+  "2006",
+  "2005",
+  "2004",
+  "2003",
+  "2002",
+  "2001",
+  "2000",
+  "1999",
+  "1998",
+  "1997",
+  "1996",
+  "1995",
+  "1994",
+  "1993",
+  "1992",
+  "1991",
+  "1990",
+  "1989",
+  "1988",
+  "1987",
+  "1986",
+  "1985",
+  "1984",
+  "1983",
+  "1982",
+  "1981",
+  "1980",
+  "1979",
+  "1978",
+  "1977",
+  "1976",
+  "1975",
+  "1974",
+  "1973",
+  "1972",
+  "1971",
+  "1970",
+  "1969",
+  "1968",
+  "1967",
+  "1966",
+  "1965",
+  "1964",
+  "1963",
+  "1962",
+  "1961",
+  "1960",
+];

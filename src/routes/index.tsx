@@ -3,14 +3,14 @@ import { Login } from '../pages/public/Login';
 import { AdminDashboard } from '../pages/admin/Dashboard';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import PublicDriverInfo from '../pages/public/DriverInfo';
-import { DriverList } from '../components/Driver/DriverList';
+import { DriverList } from '../pages/driver/DriverList';
+import { ProfilePage } from '../components/EditProfile/EditProfile';
+import { OperatorList } from '../pages/operator/OperatorsList';
+import { DriverDashboard } from '../pages/driver/Dashboard';
+import { OperatorDashboard } from '../pages/operator/Dashboard';
+import { VehicleList } from '../pages/vehicles/VehiclesList';
 
 // Componentes temporários só para teste
-const OperatorDashboard = () => <h1 className="p-8 text-2xl">Área do Operador 🚛</h1>;
-const DriverDashboard = () => <h1 className="p-8 text-2xl">Área do Motorista 🚗</h1>;
-const OperadoresList = () => <h1>Lista de Operadores (Em breve)</h1>;
-const VeiculosList = () => <h1>Lista de Veículos (Em breve)</h1>;
-const EditProfile = () => <h1>Editar Perfil (Em breve)</h1>;
 
 export function AppRoutes() {
   return (
@@ -25,9 +25,9 @@ export function AppRoutes() {
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="motoristas" element={<DriverList />} />
-          <Route path="operadores" element={<OperadoresList />} />
-          <Route path="veiculos" element={<VeiculosList />} />
-          <Route path="editarperfil" element={<EditProfile />} />
+          <Route path="operadores" element={<OperatorList />} />
+          <Route path="veiculos" element={<VehicleList />} />
+          <Route path="editarperfil" element={<ProfilePage />} />
           {/* ... outras rotas admin ... */}
         </Route>
 
@@ -36,17 +36,16 @@ export function AppRoutes() {
           <Route index element={<Navigate to="/operator/dashboard" replace />} />
           <Route path="dashboard" element={<OperatorDashboard />} />
           <Route path="motoristas" element={<DriverList />} />
-          <Route path="veiculos" element={<VeiculosList />} />
-          {/* Exemplo de placeholder para evitar erro 404 ao clicar no menu */}
-          <Route path="movimentacoes" element={<h1>Movimentações</h1>} />
-          <Route path="checklists" element={<h1>Checklists</h1>} />
+          <Route path="veiculos" element={<VehicleList />} />
+          <Route path="editarperfil" element={<ProfilePage />} />
         </Route>
 
         {/* NOVA: ROTA MOTORISTA */}
         <Route path="/driver" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/driver/dashboard" replace />} />
           <Route path="dashboard" element={<DriverDashboard />} />
-          <Route path="viagens" element={<h1>Histórico de Viagens</h1>} />
+          <Route path="veiculos" element={<VehicleList />} />
+          <Route path="editarperfil" element={<ProfilePage />} />
         </Route>
 
 
