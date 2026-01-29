@@ -13,14 +13,17 @@ interface LoginResponse {
         name: string;
         email: string;
         role: string; // Ex: 'ADMIN', 'OPERATOR', 'DRIVER'
+        companyId?: string;
     }
     // Se seu backend retornar o usuário junto, adicione aqui. Ex: user: { role: string ... }
 }
 
 export const authService = {
     login: async (data: LoginRequest): Promise<LoginResponse> => {
+        
         // Ajuste a URL '/auth/login' se for diferente no seu backend
         const response = await api.post<LoginResponse>('/auth/login', data);
+        ;console.log(response);
         return response.data;
     },
 };
