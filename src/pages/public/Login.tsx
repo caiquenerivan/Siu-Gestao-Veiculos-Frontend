@@ -1,42 +1,64 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../services/authService';
 import { Lock, Mail } from 'lucide-react'; // Ícones
+import { useAuth } from '../../contexts/AuthContext';
 
 export function Login() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitting, setisSubmitting] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError('');
-
-        try {
-            const response = await authService.login({ email, password });
-
-            // 1. Verificação de segurança: O objeto user existe?
-            if (!response?.user) {
-                throw new Error('Dados do usuário não retornados pelo servidor.');
-            }
-                
-            // 1. Salva o token
-            localStorage.setItem('token', response.access_token);
-            
-            // 2. Salva o user (opcional, mas útil para mostrar "Olá, Fulano")
-            localStorage.setItem('user', JSON.stringify(response.user));
-
-            // 3. Verifica a ROLE e redireciona (ajuste os nomes conforme seu banco de dados)
-            const role = response.user.role?.toUpperCase(); // Pode ser maiúsculo ou minúsculo, verifique seu banco!
-
+    const { signIn, user } = useAuth(); // Pegue o user também para debug se precisar
+    const { signed } = useAuth();
+    
+    useEffect(() => {
+        if (signed) {
+            const role = user?.role?.toUpperCase(); 
             switch (role) {
                 case 'ADMIN':
                     navigate('/admin/dashboard');
                     break;
                 case 'OPERATOR':
+                    navigate('/operator/dashboard');
+                    break;
+                case 'COMPANY':
+                    navigate('/company/dashboard');
+                    break;
+                case 'MOTORISTA': // ou 'MOTORISTA', depende de como você salvou no banco
+                    navigate('/driver/dashboard');
+                    break;
+                default:
+                    // Se não tiver role definida ou for desconhecida
+                    navigate('/login');
+                    console.warn("Role desconhecida:", role);
+                    alert('Usuário sem perfil definido');
+                    localStorage.clear();
+            }
+        }
+    }, [signed, navigate]);
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        setisSubmitting(true);
+        setError('');
+
+        try {
+            // 1. Chama APENAS o signIn do contexto (que já chama a API e salva no storage)
+            // Agora ele retorna o usuário logado!
+            const loggedUser = await signIn(email, password);
+
+            // 2. Verifica a ROLE e redireciona baseado no usuário retornado
+            const role = loggedUser.role?.toUpperCase();
+            
+            await signIn(email, password);
+                
+            switch (role) {
+                case 'ADMIN':
+                    navigate('/admin/dashboard');
+                    break;
+                case 'OPERADOR':
                     navigate('/operator/dashboard');
                     break;
                 case 'MOTORISTA': // ou 'MOTORISTA', depende de como você salvou no banco
@@ -56,7 +78,7 @@ export function Login() {
             const message = err.response?.data?.message || err.message|| 'Falha ao fazer login. Verifique suas credenciais.';
             setError(Array.isArray(message) ? message[0] : message);
         } finally {
-            setIsLoading(false);
+            setisSubmitting(false);
         }
     };
 
@@ -111,10 +133,10 @@ export function Login() {
 
                     <button
                         type="submit"
-                        disabled={isLoading}
-                        className={`w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 flex justify-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        disabled={isSubmitting}
+                        className={`w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 flex justify-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
-                        {isLoading ? 'Entrando...' : 'Entrar'}
+                        {isSubmitting ? 'Entrando...' : 'Entrar'}
                     </button>
                 </form>
             </div>
