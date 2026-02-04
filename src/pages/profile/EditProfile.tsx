@@ -1,143 +1,117 @@
 import React, { useEffect, useState } from 'react';
 import { 
   User, Mail, Lock, Camera, Save, Briefcase, 
-  IdCard, Pill, Loader2, Shield, MapPin, FileText, Building 
+  IdCard, Pill, Loader2, Shield, MapPin, FileText, Building, 
+  Phone, Home, Activity 
 } from 'lucide-react';
 import { profileService } from '../../services/api';
+//import { useAuth } from '../../contexts/AuthContext';
 
-// --- Tipos baseados no seu Schema Prisma ---
-interface AdminProfile {
-  id: string;
-  company: string | null;
-  region: string | null;
-  cpfCnpj: string | null;
-}
-
-interface OperatorProfile {
-  id: string;
-  type: string | null; // "CLT" | "PJ"
-  company: string | null;
-  region: string | null;
-  cpf: string | null;
-  cnpj: string | null;
-}
-
-interface DriverProfile {
-  id: string;
-  cnh: string;
-  status: string;
-  photoUrl: string | null;
-  company: string | null;
-  toxicologyExam: string | null;
-}
-
-interface UserProfile {
+// Interfaces para tipagem dos dados recebidos e enviados
+interface UserData {
   id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'OPERADOR' | 'MOTORISTA'; // Tipagem estrita das roles
-  // Relacionamentos opcionais
-  admin?: AdminProfile;
-  operator?: OperatorProfile;
-  driver?: DriverProfile;
+  role: 'ADMIN' | 'COMPANY' | 'OPERADOR' | 'MOTORISTA';
+  
+  // Dados aninhados vindos da API
+  admin?: { region?: string; cpf?: string; cnpj?: string; company?: string };
+  company?: { cnpj?: string; phone?: string; address?: string; city?: string; state?: string; zipCode?: string };
+  operator?: { region?: string; cpf?: string; company?: { name: string } | string }; // Pode vir objeto ou string
+  driver?: { cnh?: string; status?: string; toxicologyExam?: string; photoUrl?: string; company?: { name: string } | string };
 }
 
-
 export const ProfilePage: React.FC = () => {
+  //const { user } = useAuth(); // Apenas para saber o role inicial se precisar
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
-
-  // --- Estados Comuns ---
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  // --- Estados Específicos (Compartilhados entre roles para simplificar) ---
-  const [company, setCompany] = useState('');
-  const [region, setRegion] = useState('');
-  const [cpfCnpj, setCpfCnpj] = useState(''); // Para Admin
-  const [cpf, setCpf] = useState('');         // Para Operator
-  const [cnpj, setCnpj] = useState('');       // Para Operator
-  const [operatorType, setOperatorType] = useState('CLT'); // Para Operator
   
-  // --- Estados Exclusivos de Driver ---
-  const [cnh, setCnh] = useState('');
-  const [toxicology, setToxicology] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState('');
+  // Estado único para o formulário
+  const [formData, setFormData] = useState({
+    // Comuns
+    name: '',
+    email: '',
+    password: '',
+    
+    // Admin / Operator
+    region: '',
+    cpf: '',
+    
+    // Admin / Company
+    cnpj: '',
+    
+    // Company
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
 
+    // Operator
+    companyName: '', // Apenas visual ou edição de nome
+    
+    // Driver
+    cnh: '',
+    status: '',
+    toxicologyExam: '',
+    photoUrl: '',
+    selectedFile: null as File | null,
+  });
 
-  //const useId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}').id : null;
-  // 1. Função de busca de dados (fora do useEffect para ser acessível globalmente no componente)
-  const fetchData = async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
-    try {
-      const userData = await profileService.getMe();
-      setUser(userData);
-      
-      // Popula campos básicos
-      setName(userData.name);
-      setEmail(userData.email);
+  const [userRole, setUserRole] = useState<string>('');
+  const [userId, setUserId] = useState<string>('');
 
-      // --- Lógica de Preenchimento baseada na Role ---
-      if (userData.role === 'ADMIN' && userData.admin) {
-          setCompany(userData.admin.company || '');
-          setRegion(userData.admin.region || '');
-          setCpfCnpj(userData.admin.cpfCnpj || '');
-      } 
-      else if (userData.role === 'OPERADOR' && userData.operator) {
-          setCompany(userData.operator.company || '');
-          setRegion(userData.operator.region || '');
-          setCpf(userData.operator.cpf || '');
-          setCnpj(userData.operator.cnpj || '');
-          setOperatorType(userData.operator.type || 'CLT');
-      }
-      else if (userData.role === 'MOTORISTA' && userData.driver) {
-          setCompany(userData.driver.company || '');
-          setCnh(userData.driver.cnh);
-          const date = userData.driver.toxicologyExam;
-          setToxicology(date ? new Date(date).toISOString().split('T')[0] : '');
-          setPreviewUrl(userData.driver.photoUrl || '');
-      }
-    } catch (error) {
-      console.error("Erro ao carregar perfil", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 1. Carregar Perfil
+  // 1. Carregar Dados
   useEffect(() => {
-    fetchData();
     const loadData = async () => {
+      setLoading(true);
       try {
-        const userData = await profileService.getMe();
-        setUser(userData);
+        const data: UserData = await profileService.getMe();
         
-        // Popula campos básicos
-        setName(userData.name);
-        setEmail(userData.email);
+        setUserRole(data.role);
+        setUserId(data.id);
 
-        // --- Lógica de Preenchimento baseada na Role ---
-        if (userData.role === 'ADMIN' && userData.admin) {
-            setCompany(userData.admin.company || '');
-            setRegion(userData.admin.region || '');
-            setCpfCnpj(userData.admin.cpfCnpj || '');
+        // Objeto base com dados comuns
+        const formValues = {
+          name: data.name,
+          email: data.email,
+          password: '', // Senha sempre vazia ao carregar
+          region: '', cpf: '', cnpj: '', phone: '', address: '', city: '', state: '', zipCode: '',
+          companyName: '', cnh: '', status: '', toxicologyExam: '', photoUrl: '', selectedFile: null
+        };
+
+        // Preenchimento condicional
+        if (data.role === 'ADMIN' && data.admin) {
+          formValues.region = data.admin.region || '';
+          formValues.cpf = data.admin.cpf || '';
+          formValues.cnpj = data.admin.cnpj || '';
         } 
-        else if (userData.role === 'OPERATOR' && userData.operator) {
-            setCompany(userData.operator.company || '');
-            setRegion(userData.operator.region || '');
-            setCpf(userData.operator.cpf || '');
-            setCnpj(userData.operator.cnpj || '');
-            setOperatorType(userData.operator.type || 'CLT');
+        else if (data.role === 'COMPANY' && data.company) {
+          formValues.cnpj = data.company.cnpj || '';
+          formValues.phone = data.company.phone || '';
+          formValues.address = data.company.address || '';
+          formValues.city = data.company.city || '';
+          formValues.state = data.company.state || '';
+          formValues.zipCode = data.company.zipCode || '';
         }
-        else if (userData.role === 'DRIVER' && userData.driver) {
-            setCompany(userData.driver.company || '');
-            setCnh(userData.driver.cnh);
-            setToxicology(userData.driver.toxicologyExam ? new Date(userData.driver.toxicologyExam).toISOString().split('T')[0] : '');
-            setPreviewUrl(userData.driver.photoUrl || '');
+        else if (data.role === 'OPERADOR' && data.operator) {
+          formValues.region = data.operator.region || '';
+          formValues.cpf = data.operator.cpf || '';
+          // Tratamento para company name que pode vir como objeto ou string
+          const compName = typeof data.operator.company === 'object' ? data.operator.company?.name : data.operator.company;
+          formValues.companyName = compName || '';
         }
+        else if (data.role === 'MOTORISTA' && data.driver) {
+          formValues.cnh = data.driver.cnh || '';
+          formValues.status = data.driver.status || 'ATIVO';
+          formValues.photoUrl = data.driver.photoUrl || '';
+          // Formata data para input date (YYYY-MM-DD)
+          if (data.driver.toxicologyExam) {
+            formValues.toxicologyExam = new Date(data.driver.toxicologyExam).toISOString().split('T')[0];
+          }
+        }
+
+        setFormData(prev => ({ ...prev, ...formValues }));
 
       } catch (error) {
         console.error("Erro ao carregar perfil", error);
@@ -148,298 +122,253 @@ export const ProfilePage: React.FC = () => {
     loadData();
   }, []);
 
-  // Handler de Foto (Apenas Driver)
+  // 2. Manipuladores de Mudança
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      setFormData(prev => ({ 
+        ...prev, 
+        selectedFile: file,
+        photoUrl: URL.createObjectURL(file) // Preview
+      }));
     }
   };
 
-  // 2. Submit Inteligente
+  // 3. Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) return;
     setSaving(true);
 
     try {
-      // --- CENÁRIO: MOTORISTA (Usa FormData para foto) ---
-      if (user.role === 'MOTORISTA' && user.driver) {
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('email', email);
-        formData.append('cnh', cnh);
-        formData.append('company', company);
-        formData.append('status', user.driver.status); 
-        
-        if (password) formData.append('password', password);
-        if (toxicology) formData.append('toxicologyExam', new Date(toxicology).toISOString());
-        if (selectedFile) formData.append('file', selectedFile);
+      // Cenário Motorista (FormData por causa da foto)
+      if (userRole === 'MOTORISTA') {
+        const payload = new FormData();
+        payload.append('name', formData.name);
+        payload.append('email', formData.email);
+        payload.append('cnh', formData.cnh);
+        payload.append('status', formData.status);
+        if (formData.password) payload.append('password', formData.password);
+        if (formData.toxicologyExam) payload.append('toxicologyExam', new Date(formData.toxicologyExam).toISOString());
+        if (formData.selectedFile) payload.append('file', formData.selectedFile);
 
-        await profileService.updateDriverFormData(user.driver.id, formData);
+        await profileService.updateDriverFormData(userId, payload);
       } 
-      
-      // --- CENÁRIO: ADMIN ou OPERADOR (Usa JSON) ---
+      // Cenário JSON (Admin, Company, Operator)
       else {
-        // Objeto base
-
+        // Copia tudo e remove campos inúteis ou vazios
         const payload: any = {
-            name: name,
-            email: email,
+          name: formData.name,
+          email: formData.email,
         };
-        if (password) payload.password = password;
 
-        if (user.role === 'ADMIN') {
-        payload.company = company;
-        payload.region = region;
-        payload.cpfCnpj = cpfCnpj;
+        if (formData.password) payload.password = formData.password;
+
+        if (userRole === 'ADMIN') {
+          payload.region = formData.region;
+          payload.cpf = formData.cpf;
+          payload.cnpj = formData.cnpj;
+        } 
+        else if (userRole === 'COMPANY') {
+          payload.cnpj = formData.cnpj;
+          payload.phone = formData.phone;
+          payload.address = formData.address;
+          payload.city = formData.city;
+          payload.state = formData.state;
+          payload.zipCode = formData.zipCode;
+        } 
+        else if (userRole === 'OPERADOR') {
+          payload.region = formData.region;
+          payload.cpf = formData.cpf;
+          // companyName geralmente é read-only vindo do relacionamento, 
+          // mas se sua API permitir editar, descomente:
+          // payload.companyName = formData.companyName; 
+        }
+
+        await profileService.updateUserJson(userId, payload);
       }
-
-      // 3. Se for OPERATOR, adicionamos os campos dele
-      if (user.role === 'OPERADOR') {
-        payload.type = operatorType;
-        payload.company = company;
-        payload.region = region;
-        payload.cpf = cpf;
-        payload.cnpj = cnpj;
-      }
-
-      // Agora enviamos o 'payload' que acabamos de definir
-      // Certifique-se de que sua api.ts está esperando esse formato
-      await profileService.updateUserJson(user.id, payload);
-        
-      }
-      await fetchData(true);
-
 
       alert('Perfil atualizado com sucesso!');
-      setPassword(''); 
-      
-      // Atualiza header
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({ 
-        ...storedUser, 
-        name: name,
-        photoUrl: previewUrl // Caso seja motorista e tenha trocado a foto
-      }));
+      setFormData(prev => ({ ...prev, password: '' })); // Limpa senha
 
     } catch (error) {
       console.error(error);
-      alert('Erro ao atualizar. Verifique os dados.');
+      alert('Erro ao atualizar perfil. Verifique os dados.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="p-10 flex justify-center"><Loader2 className="animate-spin" /></div>;
-  if (!user) return <p className="p-10 text-center">Usuário não encontrado.</p>;
+  // --- Renderizadores de Campos Específicos ---
 
-  const isDriver = user.role === 'MOTORISTA';
+  const renderAdminInputs = () => (
+    <>
+      <Input label="Região" name="region" value={formData.region} onChange={handleChange} icon={<MapPin />} />
+      <Input label="CPF" name="cpf" value={formData.cpf} onChange={handleChange} icon={<FileText />} />
+      <Input label="CNPJ" name="cnpj" value={formData.cnpj} onChange={handleChange} icon={<Building />} />
+    </>
+  );
+
+  const renderCompanyInputs = () => (
+    <>
+      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Input label="CNPJ" name="cnpj" value={formData.cnpj} onChange={handleChange} icon={<FileText />} />
+        <Input label="Telefone" name="phone" value={formData.phone} onChange={handleChange} icon={<Phone />} />
+      </div>
+      
+      <div className="md:col-span-2 border-t border-gray-100 my-2 pt-4">
+        <h4 className="text-sm font-bold text-gray-500 uppercase mb-4 flex items-center gap-2"><Home size={16}/> Endereço</h4>
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+           <div className="md:col-span-3">
+             <Input label="Logradouro" name="address" value={formData.address} onChange={handleChange} />
+           </div>
+           <div className="md:col-span-2">
+             <Input label="Cidade" name="city" value={formData.city} onChange={handleChange} />
+           </div>
+           <div className="md:col-span-1">
+             <Input label="UF" name="state" value={formData.state} onChange={handleChange} />
+           </div>
+           <div className="md:col-span-2">
+             <Input label="CEP" name="zipCode" value={formData.zipCode} onChange={handleChange} />
+           </div>
+        </div>
+      </div>
+    </>
+  );
+
+  const renderOperatorInputs = () => (
+    <>
+      <Input label="Empresa (Nome)" name="companyName" value={formData.companyName} onChange={handleChange} icon={<Building />} disabled />
+      <Input label="Região" name="region" value={formData.region} onChange={handleChange} icon={<MapPin />} />
+      <Input label="CPF" name="cpf" value={formData.cpf} onChange={handleChange} icon={<FileText />} />
+    </>
+  );
+
+  const renderDriverInputs = () => (
+    <>
+      <Input label="CNH" name="cnh" value={formData.cnh} onChange={handleChange} icon={<IdCard />} />
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <div className="relative">
+           <Activity className="absolute left-3 top-3 text-gray-400" size={18} />
+           <select 
+             name="status" 
+             value={formData.status} 
+             onChange={handleChange} 
+             className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+           >
+             <option value="ATIVO">ATIVO</option>
+             <option value="INATIVO">INATIVO</option>
+             <option value="SUSPENSO">SUSPENSO</option>
+           </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Exame Toxicológico</label>
+        <div className="relative">
+           <Pill className="absolute left-3 top-3 text-gray-400" size={18} />
+           <input type="date" name="toxicologyExam" value={formData.toxicologyExam} onChange={handleChange} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+        </div>
+      </div>
+    </>
+  );
+
+  // --- Temas de Cor ---
+  const getThemeColor = () => {
+    switch(userRole) {
+        case 'ADMIN': return 'violet';
+        case 'COMPANY': return 'teal';
+        case 'OPERADOR': return 'indigo';
+        case 'MOTORISTA': return 'blue';
+        default: return 'gray';
+    }
+  }
+  const themeColor = getThemeColor();
+
+  if (loading) return <div className="h-screen flex justify-center items-center"><Loader2 className="animate-spin text-gray-400" /></div>;
 
   return (
-    <div className="mx-auto min-h-full p-6">
+    <div className="mx-auto min-h-full p-6 max-w-5xl">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         
-        {/* Header Visual */}
-        <div className={`h-32 relative bg-gradient-to-r flex justify-center items-center ${
-            user.role === 'ADMIN' ? 'from-purple-800 to-indigo-900' :
-            user.role === 'OPERADOR' ? 'from-teal-700 to-emerald-800' :
-            'from-blue-700 to-blue-900'
-        }`}>
-          <div className=" flex flex-col justify-center items-center bottom-4 text-white">
+        {/* Header Dinâmico */}
+        <div className={`h-32 relative bg-gradient-to-r from-${themeColor}-600 to-${themeColor}-800 flex justify-center items-center`}>
+          <div className="flex flex-col justify-center items-center text-white">
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <User /> {user.name}
+              <User /> {formData.name}
             </h1>
-            <p className="text-xs text-gray-200 opacity-80 mt-1">
-                {user.role === 'ADMIN' && 'Administrador do Sistema'}
-                {user.role === 'OPERADOR' && 'Operador'}
-                {user.role === 'MOTORISTA' && 'Motorista'}
-            </p>
+            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full mt-1 uppercase tracking-wide">
+                {userRole}
+            </span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 pt-0">
           
-          {/* Área da Foto */}
-          <div className="flex justify-between items-end -mt-12 mb-8">
+          {/* Avatar (Editável apenas para motorista) */}
+          <div className="flex justify-center -mt-12 mb-8">
             <div className="relative group">
-              {isDriver && (
+              {userRole === 'MOTORISTA' && (
                 <input type="file" id="profile-upload" accept="image/*" onChange={handleFileChange} className="hidden" />
               )}
               
               <label 
-                htmlFor={isDriver ? "profile-upload" : undefined} 
-                className={`w-32 h-32 rounded-full border-4 border-white bg-gray-100 shadow-md flex items-center justify-center overflow-hidden relative ${isDriver ? 'cursor-pointer' : 'cursor-default'}`}
+                htmlFor={userRole === 'MOTORISTA' ? "profile-upload" : undefined} 
+                className={`w-28 h-28 rounded-full border-4 border-white bg-gray-100 shadow-md flex items-center justify-center overflow-hidden relative ${userRole === 'MOTORISTA' ? 'cursor-pointer' : 'cursor-default'}`}
               >
-                {previewUrl ? (
-                  <img src={previewUrl} alt="Foto" className="w-full h-full object-cover" />
+                {formData.photoUrl ? (
+                  <img src={formData.photoUrl} alt="Foto" className="w-full h-full object-cover" />
                 ) : (
-                  <User size={48} className="text-gray-400" />
+                  <User size={40} className={`text-${themeColor}-400`} />
                 )}
-                {isDriver && (
+                {userRole === 'MOTORISTA' && (
                   <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white font-medium text-xs">
-                    <Camera size={24} className="mb-1" />
-                    Alterar
+                    <Camera size={20} className="mb-1" /> Alterar
                   </div>
                 )}
               </label>
             </div>
-
-            <div className="flex gap-2">
-               <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100 uppercase">
-                 {user.role}
-               </span>
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            {/* ============================================== */}
-            {/* LADO ESQUERDO: CREDENCIAIS (Todos têm)         */}
-            {/* ============================================== */}
+            {/* 1. DADOS DE ACESSO (Comuns) */}
             <div className="space-y-5">
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider border-b pb-2 flex items-center gap-2">
-                <Shield size={16} /> Acesso
+                <Shield size={16} /> Credenciais
               </h3>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                <div className="relative">
-                   <User className="absolute left-3 top-3 text-gray-400" size={18} />
-                   <input value={name} onChange={e => setName(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <div className="relative">
-                   <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-                   <input value={email} onChange={e => setEmail(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Alterar Senha</label>
-                <div className="relative">
-                   <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-                   <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Deixe vazio para manter" className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
-              </div>
+              <Input label="Nome Completo" name="name" value={formData.name} onChange={handleChange} icon={<User />} />
+              <Input label="Email" name="email" value={formData.email} onChange={handleChange} icon={<Mail />} />
+              <Input label="Nova Senha" name="password" type="password" value={formData.password} onChange={handleChange} icon={<Lock />} placeholder="Preencha apenas se quiser alterar" />
             </div>
 
-            {/* ============================================== */}
-            {/* LADO DIREITO: DADOS ESPECÍFICOS POR ROLE       */}
-            {/* ============================================== */}
+            {/* 2. DADOS ESPECÍFICOS */}
             <div className="space-y-5">
               <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider border-b pb-2 flex items-center gap-2">
                 <Briefcase size={16} /> Dados Profissionais
               </h3>
+              
+              {userRole === 'ADMIN' && renderAdminInputs()}
+              {userRole === 'COMPANY' && renderCompanyInputs()}
+              {userRole === 'OPERADOR' && renderOperatorInputs()}
+              {userRole === 'MOTORISTA' && renderDriverInputs()}
 
-              {/* --- CASO 1: ADMIN --- */}
-              {user.role === 'ADMIN' && (
-                <>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-                        <div className="relative">
-                            <Building className="absolute left-3 top-3 text-gray-400" size={18} />
-                            <input value={company} onChange={e => setCompany(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Região</label>
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
-                            <input value={region} onChange={e => setRegion(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">CPF / CNPJ</label>
-                        <div className="relative">
-                            <FileText className="absolute left-3 top-3 text-gray-400" size={18} />
-                            <input value={cpfCnpj} onChange={e => setCpfCnpj(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none" />
-                        </div>
-                    </div>
-                </>
-              )}
-
-              {/* --- CASO 2: OPERATOR --- */}
-              {user.role === 'OPERADOR' && (
-                <>
-                    <div className="flex gap-4">
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                            <select value={operatorType} onChange={e => setOperatorType(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none">
-                                <option value="CLT">CLT</option>
-                                <option value="PJ">PJ</option>
-                            </select>
-                        </div>
-                        <div className="flex-1">
-                             <label className="block text-sm font-medium text-gray-700 mb-1">Região</label>
-                             <input value={region} onChange={e => setRegion(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-                        <div className="relative">
-                            <Building className="absolute left-3 top-3 text-gray-400" size={18} />
-                            <input value={company} onChange={e => setCompany(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" />
-                        </div>
-                    </div>
-                    {operatorType === 'CLT' ? (
-                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
-                            <div className="relative">
-                                <FileText className="absolute left-3 top-3 text-gray-400" size={18} />
-                                <input value={cpf} onChange={e => setCpf(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" />
-                            </div>
-                         </div>
-                    ) : (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
-                            <div className="relative">
-                                <FileText className="absolute left-3 top-3 text-gray-400" size={18} />
-                                <input value={cnpj} onChange={e => setCnpj(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" />
-                            </div>
-                         </div>
-                    )}
-                </>
-              )}
-
-              {/* --- CASO 3: DRIVER --- */}
-              {user.role === 'MOTORISTA' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CNH</label>
-                    <div className="relative">
-                       <IdCard className="absolute left-3 top-3 text-gray-400" size={18} />
-                       <input value={cnh} onChange={e => setCnh(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Empresa / Frota</label>
-                    <div className="relative">
-                       <Briefcase className="absolute left-3 top-3 text-gray-400" size={18} />
-                       <input value={company} onChange={e => setCompany(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Validade Toxicológico</label>
-                    <div className="relative">
-                       <Pill className="absolute left-3 top-3 text-gray-400" size={18} />
-                       <input type="date" value={toxicology} onChange={e => setToxicology(e.target.value)} className="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
-                    </div>
-                  </div>
-                </>
-              )}
             </div>
           </div>
 
           <div className="mt-10 flex justify-end pt-6 border-t border-gray-100">
-            <button type="submit" disabled={saving} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-all shadow-md disabled:opacity-70 disabled:cursor-not-allowed">
+            <button 
+                type="submit" 
+                disabled={saving} 
+                className={`flex items-center gap-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white px-8 py-3 rounded-lg font-medium transition-all shadow-md disabled:opacity-70 disabled:cursor-not-allowed`}
+            >
               {saving ? <><Loader2 className="animate-spin" size={20} /> Salvando...</> : <><Save size={20} /> Salvar Alterações</>}
             </button>
           </div>
@@ -449,3 +378,22 @@ export const ProfilePage: React.FC = () => {
     </div>
   );
 };
+
+// Componente Helper de Input para limpar o JSX
+const Input = ({ label, name, value, onChange, icon, type = "text", placeholder, disabled = false }: any) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+    <div className="relative">
+       {icon && React.cloneElement(icon, { size: 18, className: "absolute left-3 top-3 text-gray-400" })}
+       <input 
+         type={type}
+         name={name}
+         value={value} 
+         onChange={onChange} 
+         disabled={disabled}
+         placeholder={placeholder}
+         className={`w-full ${icon ? 'pl-10' : 'p-2.5'} p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-500 transition-colors`} 
+       />
+    </div>
+  </div>
+);

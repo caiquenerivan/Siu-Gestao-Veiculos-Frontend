@@ -43,10 +43,10 @@ export const VehicleList: React.FC = () => {
   const{user} = useAuth();
 
   // Agora MOTORISTA também pode criar/editar (pois é autônomo)
-  const canManage = ['ADMIN', 'COMPANY', 'OPERADOR', 'MOTORISTA'].includes(user?.role || '');
+  //const canManage = ['ADMIN', 'COMPANY', 'OPERADOR', 'MOTORISTA'].includes(user?.role || '');
 
   // MOTORISTA também pode excluir seus próprios veículos
-  const canDelete = ['ADMIN', 'COMPANY', 'MOTORISTA'].includes(user?.role || '');
+  //const canDelete = ['ADMIN', 'COMPANY', 'MOTORISTA'].includes(user?.role || '');
   
   const LIMIT = 10;
 

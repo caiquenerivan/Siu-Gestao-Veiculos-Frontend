@@ -8,7 +8,6 @@ import { api } from "../../services/api";
 import DriverUpdateModal from "../../components/Driver/EditDriver";
 import { useAuth } from "../../contexts/AuthContext";
 import { driverService } from "../../services/driverService";
-// import { data } from "react-router-dom";
 
 
 
@@ -52,8 +51,21 @@ export const DriverList: React.FC = () => {
       }
 
       const listaDeMotoristas = response?.data.data || [];
+      const metaData = response?.data.meta;
       
-      setDrivers(listaDeMotoristas);
+      setDrivers(listaDeMotoristas); 
+      if (metaData) {
+        setMeta({
+          total: metaData.total,
+          page: metaData.page,
+          limit: metaData.limit,
+          // Garante que lastPage seja um número (se vier undefined, usa 1)
+          lastPage: metaData.lastPage ?? 1, 
+        });
+      } else {
+        // Se não tiver meta, define como null
+        setMeta(null);
+      }
     } catch (error) {
       console.error("Erro ao buscar motoristas", error);
     } finally {

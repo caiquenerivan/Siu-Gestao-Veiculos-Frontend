@@ -24,7 +24,7 @@ export interface RegisterCompanyData {
   email: string;
   password: string;
   cnpj: string;
-  companyId: string;
+  companyId?: string;
   role: 'COMPANY';
 }
 
@@ -34,8 +34,8 @@ export interface RegisterDriverData {
   password: string;
   cnh: string;
   role: 'MOTORISTA'; // ou 'DRIVER', verifique seu backend
-  companyId: string;
-  driverId: string;
+  companyId?: string;
+  driverId?: string;
 }
 
 

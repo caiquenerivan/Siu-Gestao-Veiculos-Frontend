@@ -6,8 +6,7 @@ import {
   Save,
   User,
   Building,
-  MapPin,
-  FileText
+  MapPin
 } from 'lucide-react';
 import type { Operator } from '../../types'; // Certifique-se de ter esse type
 
@@ -31,11 +30,9 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    type: 'CLT' as 'CLT' | 'PJ',
-    company: '',
+    companyId: '',
     region: '',
     cpf: '',
-    cnpj: '',
   });
 
   // Popula o formulário quando o modal abre ou o operator muda
@@ -44,11 +41,9 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
       setFormData({
         name: operator.user?.name || '',
         email: operator.user?.email || '',
-        type: (operator.type as 'CLT' | 'PJ') || 'CLT',
-        company: operator.company || '',
+        companyId: operator.companyId || '',
         region: operator.region || '',
-        cpf: operator.cpf || '',
-        cnpj: operator.cnpj || '',
+        cpf: operator.user?.cpf || '',
       });
     }
   }, [isOpen, operator]);
@@ -67,11 +62,9 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
     const payload = {
       name: formData.name,
       email: formData.email,
-      type: formData.type,
-      company: formData.company,
+      company: formData.companyId,
       region: formData.region,
-      cpf: formData.type === 'CLT' ? formData.cpf : undefined,
-      cnpj: formData.type === 'PJ' ? formData.cnpj : undefined,
+      cpf: formData.cpf
     };
 
     await onSave(payload);
@@ -137,44 +130,14 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase">Tipo de Contrato</label>
                 <div className="relative">
-                  <select
-                    name="type"
-                    value={formData.type}
+                  <input
+                    type="text"
+                    name="cpf"
+                    value={formData.cpf}
                     onChange={handleChange}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none appearance-none"
-                  >
-                    <option value="CLT">CLT</option>
-                    <option value="PJ">PJ</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Documento Condicional */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">
-                    {formData.type === 'CLT' ? 'CPF' : 'CNPJ'}
-                </label>
-                <div className="flex items-center gap-2">
-                    <FileText className="text-gray-400" size={20} />
-                    {formData.type === 'CLT' ? (
-                        <input
-                            type="text"
-                            name="cpf"
-                            value={formData.cpf}
-                            onChange={handleChange}
-                            className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-                            placeholder="000.000.000-00"
-                        />
-                    ) : (
-                        <input
-                            type="text"
-                            name="cnpj"
-                            value={formData.cnpj}
-                            onChange={handleChange}
-                            className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-                            placeholder="00.000.000/0001-00"
-                        />
-                    )}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    placeholder="000.000.000-00"
+                  />
                 </div>
               </div>
 
@@ -186,7 +149,7 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
                     <input
                     type="text"
                     name="company"
-                    value={formData.company}
+                    value={formData.companyId}
                     onChange={handleChange}
                     className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
                     placeholder="Nome da empresa"

@@ -11,8 +11,8 @@ export interface UserData {
   email: string;
   password: string;
 
-  cpf: string | null;
-  cnpj: string | null;
+  cpf?: string | null;
+  cnpj?: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -38,7 +38,7 @@ export interface CreateDriverData {
   email: string;
   password: string;
   cnh: string;
-  company: string;
+  companyId?: string;
   status: string;
   photoUrl: string;
   toxicologyExam: Date | null;
