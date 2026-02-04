@@ -4,8 +4,10 @@ import DriverQRCodeModal from "../../components/QrCode";
 import DriverInfoModal from "../../components/Driver/DriverInfo";
 import type { CreateDriverData, Driver, DriversResponse, PaginationMeta } from "../../types";
 import DriverCreateModal from "../../components/Driver/CreateDriver";
-import { api, driverService } from "../../services/api";
+import { api } from "../../services/api";
 import DriverUpdateModal from "../../components/Driver/EditDriver";
+import { useAuth } from "../../contexts/AuthContext";
+import { driverService } from "../../services/driverService";
 // import { data } from "react-router-dom";
 
 
@@ -27,21 +29,31 @@ export const DriverList: React.FC = () => {
 
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
+  const {user} = useAuth();
+
   const LIMIT = 10;
 
   // --- Função de Busca ---
   const fetchDrivers = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
+      let response;
+      let companyId = user?.companyId;
       // O axios.get recebe o tipo <DriversResponse> para o TS entender o retorno
-      const response = await api.get<DriversResponse>(`/drivers?page=${page}&limit=${LIMIT}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });      
+      if(user?.role === 'ADMIN'){
+
+        response = await api.get<DriversResponse>(`/drivers?page=${page}&limit=${LIMIT}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });      
+      } else if ((user?.role === 'COMPANY' || user?.role === 'OPERADOR')&& companyId){
+        response = await driverService.findByCompanyId(companyId)
+      }
+
+      const listaDeMotoristas = response?.data.data || [];
       
-      setDrivers(response.data.data);
-      setMeta(response.data.meta);
+      setDrivers(listaDeMotoristas);
     } catch (error) {
       console.error("Erro ao buscar motoristas", error);
     } finally {

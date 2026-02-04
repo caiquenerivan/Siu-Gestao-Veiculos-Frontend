@@ -6,7 +6,6 @@ import {
   Briefcase,
   MapPin,
   Building,
-  FileText
 } from 'lucide-react';
 import type { Operator } from '../../types'; // Certifique-se de importar o tipo Operator
 
@@ -18,30 +17,7 @@ interface OperatorInfoModalProps {
 
 const OperatorInfoModal: React.FC<OperatorInfoModalProps> = ({ isOpen, onClose, operator }) => {
     if (!isOpen || !operator) return null;
-
-  // Função auxiliar para formatar datas (se existir createdAt no seu tipo, senão pode remover)
-  /*
-  const formatDate = (dateString?: string | Date) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-  */
   
-  // Define a cor da badge baseada no Tipo
-  const getTypeBadgeStyle = (type: string | null) => {
-    return type === 'PF' 
-      ? 'bg-blue-100 text-blue-800 border-blue-200' 
-      : 'bg-purple-100 text-purple-800 border-purple-200';
-  };
-
-  // Helper para mostrar o documento correto
-  const getDocumentData = () => {
-    if (operator.type === 'PF') return { label: 'CPF', value: operator.cpf };
-    if (operator.type === 'PJ') return { label: 'CNPJ', value: operator.cnpj };
-    return { label: 'Documento', value: '-' };
-  };
-
-  const documentData = getDocumentData();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -75,11 +51,6 @@ const OperatorInfoModal: React.FC<OperatorInfoModalProps> = ({ isOpen, onClose, 
                 <span className="text-2xl font-bold text-gray-900 bg-white/80 backdrop-blur-sm p-1 rounded-lg px-2">
                     {operator.user.name}
                 </span>
-                <div className="flex items-center gap-2 mt-2 ml-1">
-                    <span className={`px-3 py-0.5 rounded-full text-xs font-bold border uppercase tracking-wide ${getTypeBadgeStyle(operator.type)}`}>
-                    {operator.type || 'N/A'}
-                    </span>
-                </div>
             </div>
           </div>
 
@@ -92,16 +63,6 @@ const OperatorInfoModal: React.FC<OperatorInfoModalProps> = ({ isOpen, onClose, 
                 <Building size={16} /> Dados Contratuais
               </h3>
               
-              {/* Documento (CPF ou CNPJ) */}
-              <div className="flex gap-3 items-center group">
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-teal-50 transition-colors">
-                    <FileText className="text-gray-400 group-hover:text-teal-600" size={24} />
-                </div>
-                <div className="flex flex-col justify-center w-full">
-                  <p className="text-xs font-semibold text-gray-500 uppercase">{documentData.label}</p>
-                  <p className="font-medium text-gray-900 font-mono text-sm">{documentData.value || '---'}</p>
-                </div>
-              </div>
 
               {/* Empresa */}
               <div className="flex gap-3 items-center group">
@@ -110,7 +71,7 @@ const OperatorInfoModal: React.FC<OperatorInfoModalProps> = ({ isOpen, onClose, 
                 </div>
                 <div className="flex flex-col justify-center w-full">
                   <p className="text-xs font-semibold text-gray-500 uppercase">Empresa</p>
-                  <p className="font-medium text-gray-900">{operator.company || '---'}</p>
+                  <p className="font-medium text-gray-900">{operator.companyId || '---'}</p>
                 </div>
               </div>
             </div>

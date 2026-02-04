@@ -17,8 +17,11 @@ import VehicleCreateModal from "../../components/Vehicle/CreateVehicle";
 import VehicleUpdateModal from "../../components/Vehicle/EditVehicle";
 import VehicleInfoModal from "../../components/Vehicle/VehicleInfoModal";
 
-import { api, vehicleService } from "../../services/api";
+import { api } from "../../services/api";
 import type { Vehicle, VehiclesResponse, PaginationMeta, CreateVehicleData, UpdateVehicleData } from "../../types";
+import { useAuth } from "../../contexts/AuthContext";
+import { vehicleService } from "../../services/vehiclesService";
+import { driverService } from "../../services/driverService";
 
 export const VehicleList: React.FC = () => {
   // --- Estados ---
@@ -36,22 +39,63 @@ export const VehicleList: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const{user} = useAuth();
+
+  // Agora MOTORISTA também pode criar/editar (pois é autônomo)
+  const canManage = ['ADMIN', 'COMPANY', 'OPERADOR', 'MOTORISTA'].includes(user?.role || '');
+
+  // MOTORISTA também pode excluir seus próprios veículos
+  const canDelete = ['ADMIN', 'COMPANY', 'MOTORISTA'].includes(user?.role || '');
   
   const LIMIT = 10;
 
   // --- Função de Busca ---
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
   const fetchVehicles = async () => {
+    if(!user) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await api.get<VehiclesResponse>(`/vehicles?page=${page}&limit=${LIMIT}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });      
+      let vehiclesData;
       
-      // Proteção para garantir array
-      setVehicles(response.data.data || []);
-      setMeta(response.data.meta);
+      
+      if (user?.role === 'MOTORISTA') {
+        // Motorista vê apenas seus veículos
+        const driver = await driverService.findByUserId(user.id);
+        vehiclesData = await vehicleService.findByDriverId(driver.id);
+        const listaDeVeiculos = vehiclesData.data.data;
+        
+        setVehicles(listaDeVeiculos);
+        setLoading(false);
+        return;
+      } else if (user?.role === 'COMPANY' || user?.role === 'OPERADOR') {
+        if(user.companyId){
+          
+          // Company e Operador veem veículos da empresa
+          vehiclesData = await vehicleService.findByCompanyId(user.companyId);
+          const listaDeVeiculos = vehiclesData.data.data;
+          setVehicles(listaDeVeiculos);
+          setLoading(false);
+        }
+        return;
+      } else if(user?.role === 'ADMIN'){
+        const response = await api.get<VehiclesResponse>(`/vehicles?page=${page}&limit=${LIMIT}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        
+        if (response.data && Array.isArray(response.data.data)) {
+          setVehicles(response.data.data);
+          setMeta(response.data.meta);
+        } else {
+          setVehicles(Array.isArray(response.data) ? response.data : []);
+        }
+      }
     } catch (error) {
       console.error("Erro ao buscar veículos", error);
       setVehicles([]);
@@ -245,7 +289,7 @@ export const VehicleList: React.FC = () => {
                             >
                               <Eye size={18} />
                             </button>
-                            
+
                             <button 
                               onClick={() => handleOpenEditModal(vehicle)}
                               title="Editar Veículo" 
@@ -254,6 +298,7 @@ export const VehicleList: React.FC = () => {
                               <Edit size={18} />
                             </button>
 
+
                             <button 
                               onClick={() => handleDeleteVehicle(vehicle.id)}
                               title="Remover Veículo" 
@@ -261,6 +306,7 @@ export const VehicleList: React.FC = () => {
                             >
                               <Trash size={18} />
                             </button>
+                            
                           </div>
                         </td>
                       </tr>

@@ -9,15 +9,24 @@ import {
   Camera,
   CheckCircle,
   AlertCircle,
-  Upload
+  Upload,
+  Building2 // Ícone novo para empresa
 } from 'lucide-react';
-import type { Driver } from '../../types'; // Ajuste o import conforme necessário
+import { api } from '../../services/api'; // Certifique-se que o caminho está correto
+import { useAuth } from '../../contexts/AuthContext'; // Certifique-se que o caminho está correto
+
+// Interfaces auxiliares
+interface SimpleCompany {
+  id: string;
+  user: { name: string; email: string };
+  cnpj?: string;
+}
 
 interface DriverUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (updatedData: any) => Promise<void>; // Função para enviar ao backend
-  driver: Driver | null;
+  onSave: (updatedData: any) => Promise<void>;
+  driver: any; // Ajuste para seu tipo Driver real
   isLoading?: boolean;
 }
 
@@ -28,35 +37,53 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
   driver,
   isLoading = false
 }) => {
-
-
-
+  const { user } = useAuth(); // Pega o usuário logado para verificar a role
+  
   // Estado local para o formulário
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     cnh: '',
-    company: '',
+    companyId: '', // Mudamos de 'company' (texto) para 'companyId' (uuid)
     status: 'REGULAR',
     photoUrl: '',
     toxicologyExam: '',
   });
 
+  const [companies, setCompanies] = useState<SimpleCompany[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
-  // Popula o formulário quando o modal abre ou o driver muda
+  // 1. Busca lista de empresas se for ADMIN
   useEffect(() => {
-    console.log("Modal isOpen:", isOpen);
+    if (isOpen && user?.role === 'ADMIN') {
+      const fetchCompanies = async () => {
+        try {
+          setLoadingCompanies(true);
+          const response = await api.get('/companies?limit=100');
+          setCompanies(response.data.data || []);
+        } catch (error) {
+          console.error("Erro ao buscar empresas", error);
+        } finally {
+          setLoadingCompanies(false);
+        }
+      };
+      fetchCompanies();
+    }
+  }, [isOpen, user]);
+
+  // 2. Popula o formulário
+  useEffect(() => {
     if (isOpen && driver) {
       setFormData({
         name: driver.user?.name || '',
         email: driver.user?.email || '',
         cnh: driver.cnh || '',
-        company: driver.company || '',
+        // Tenta pegar o ID da empresa, seja direto ou aninhado
+        companyId: driver.companyId || driver.company?.id || '', 
         status: driver.status || 'REGULAR',
         photoUrl: driver.photoUrl || '',
-        // Formata a data para YYYY-MM-DD para o input type="date"
         toxicologyExam: driver.toxicologyExam 
           ? new Date(driver.toxicologyExam).toISOString().split('T')[0] 
           : '',
@@ -77,7 +104,7 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file)); // Preview da nova foto
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -86,10 +113,9 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
     await onSave({
       ...formData,
       toxicologyExam: formData.toxicologyExam ? new Date(formData.toxicologyExam) : null,
-      file: selectedFile || undefined // Envia o arquivo se tiver
-    } as any);
+      file: selectedFile || undefined
+    });
   };
-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -115,9 +141,8 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
         {/* Conteúdo Principal */}
         <div className="px-6 pb-6 flex-1">
           
-          {/* Foto e Input de Nome (Sobreposto ao Header) */}
+          {/* Foto e Input de Nome */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end -mt-12 mb-8 gap-4">
-            
             <div className="relative group">
                 <input type="file" id="edit-photo" accept="image/*" onChange={handleFileChange} className="hidden" />
                 <label htmlFor="edit-photo" className="w-24 h-24 rounded-full bg-white p-1 shadow-md flex items-center justify-center overflow-hidden cursor-pointer">
@@ -187,20 +212,35 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Empresa / Frota</label>
-                <div className="flex items-center gap-2">
-                    <Briefcase className="text-gray-400" size={20} />
-                    <input
-                    type="text"
-                    name="company"
-                    value={formData.company}
-                    onChange={handleChange}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    placeholder="Nome da empresa"
-                    />
+              {/* SELECT DE EMPRESA - APENAS ADMIN */}
+              {user?.role === 'ADMIN' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-1">
+                     <Building2 size={14} /> Empresa Responsável
+                  </label>
+                  <div className="relative">
+                      {loadingCompanies ? (
+                        <div className="w-full p-2.5 bg-gray-100 border rounded-lg text-gray-500 text-sm animate-pulse">
+                          Carregando empresas...
+                        </div>
+                      ) : (
+                        <select
+                          name="companyId"
+                          value={formData.companyId}
+                          onChange={handleChange}
+                          className="w-full p-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        >
+                          <option value="">Sem empresa vinculada</option>
+                          {companies.map((comp) => (
+                            <option key={comp.id} value={comp.id}>
+                              {comp.user.name} {comp.cnpj ? `(${comp.cnpj})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Seção 2: Contato e Saúde */}

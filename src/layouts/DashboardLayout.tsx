@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Menu, X, LayoutDashboard, Users, Truck, FileText, UserRoundPen } from 'lucide-react';
+import { LogOut, Menu, X, LayoutDashboard, Users, Truck, FileText, UserRoundPen, Building2, UserCog } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export function DashboardLayout() {
   const navigate = useNavigate();
+  const {signOut} = useAuth();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -12,8 +14,7 @@ export function DashboardLayout() {
   const user = userString ? JSON.parse(userString) : { name: 'Usuário', role: 'GUEST' };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    signOut();
     navigate('/login');
   };
 
@@ -21,21 +22,30 @@ export function DashboardLayout() {
   const menus = {
     ADMIN: [
       { label: 'Visão Geral', icon: <LayoutDashboard size={20} />, path: '/admin/dashboard' },
+      { label: 'Admins', icon: <UserCog size={20} />, path: '/admin/admins' },
+      { label: 'Empresas', icon: <Building2 size={20} />, path: '/admin/empresas' },
       { label: 'Operadores', icon: <Users size={20} />, path: '/admin/operadores' },
       { label: 'Motoristas', icon: <FileText size={20} />, path: '/admin/motoristas' },
       { label: 'Veículos', icon: <Truck size={20} />, path: '/admin/veiculos' },
-      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/admin/editarperfil' },
+      { label: 'Ver Perfil', icon: <UserRoundPen size={20} />, path: '/admin/verperfil' },
     ],
     OPERADOR: [
       { label: 'Painel', icon: <LayoutDashboard size={20} />, path: '/operator/dashboard' },
       { label: 'Motoristas', icon: <FileText size={20} />, path: '/operator/motoristas' },
       { label: 'Veículos', icon: <Truck size={20} />, path: '/operator/veiculos' },
-      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/operator/editarperfil' },
+      { label: 'Ver Perfil', icon: <UserRoundPen size={20} />, path: '/operator/verperfil' },
     ],
     MOTORISTA: [
       { label: 'Meu Painel', icon: <LayoutDashboard size={20} />, path: '/driver/dashboard' },
       { label: 'Veiculos', icon: <Truck size={20} />, path: '/driver/veiculos' },
-      { label: 'Editar Perfil', icon: <UserRoundPen size={20} />, path: '/driver/editarperfil' },
+      { label: 'Ver Perfil', icon: <UserRoundPen size={20} />, path: '/driver/verperfil' },
+    ],
+    COMPANY: [
+      { label: 'Visão Geral', icon: <LayoutDashboard size={20} />, path: '/company/dashboard' },
+      { label: 'Motoristas', icon: <FileText size={20} />, path: '/company/motoristas' },
+      { label: 'Operadores', icon: <Users size={20} />, path: '/company/operadores' },
+      { label: 'Veículos', icon: <Truck size={20} />, path: '/company/veiculos' },
+      { label: 'Ver Perfil', icon: <UserRoundPen size={20} />, path: '/company/verperfil' },
     ]
   };
 

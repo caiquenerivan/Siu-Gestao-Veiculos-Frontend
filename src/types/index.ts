@@ -1,5 +1,22 @@
+import type { Admin } from "../services/adminService";
+
+
 export type DriverStatus = 'PENDENTE' | 'ATIVO' | 'BLOQUEADO';
 export type VehicleStatus = 'REGULAR' | 'FURTO' | 'IRREGULAR';
+
+
+export interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+
+  cpf: string | null;
+  cnpj: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
 
 export interface Driver {  
   // Dados Profissionais
@@ -37,15 +54,6 @@ export interface UpdateDriverData {
   status: string;
   photoUrl: string;
   toxicologyExam: Date | null;
-}
-
-export interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  isActive: boolean;
-  createdAt: string;
 }
 
 // 2. O que vem dentro de 'vehicle'
@@ -86,18 +94,15 @@ export interface Operator {
   userId: string;
   
   // Dados específicos do Model Operator
-  type: OperatorType | null; 
-  company: string | null;
+  companyId: string | null;
   region: string | null;
-  cpf: string | null;
-  cnpj: string | null;
 
   // Relacionamento com User (Essencial para a tabela mostrar Nome/Email)
   user: {
     id: string;
     name: string;
     email: string;
-    // role: 'OPERATOR'; // Opcional, se precisar
+    cpf: string;
   };
 }
 
@@ -108,13 +113,9 @@ export interface CreateOperatorData {
   name: string;
   email: string;
   password: string; // Obrigatória na criação
-
-  // Dados do Operator
-  type?: OperatorType;
-  company: string;
+  companyId: string;
   region: string;
-  cpf?: string;     // Opcional pois depende do tipoPessoa
-  cnpj?: string;    // Opcional pois depende do tipoPessoa
+  cpf?: string;     
 }
 
 // --- TIPO PARA EDIÇÃO (PATCH) ---
@@ -135,11 +136,15 @@ export interface UpdateOperatorData {
 
 export interface PaginationMeta {
   total: number;
+  page: number;
   lastPage: number;
-  currentPage: number;
-  perPage: number;
-  prev: number | null;
-  next: number | null;
+  limit: number;
+  /*
+  currentPage?: number | null;
+  perPage?: number | null;
+  prev?: number | null;
+  next?: number | null;
+  */
 }
 
 export interface OperatorsResponse {
@@ -182,6 +187,11 @@ export interface VehiclesResponse {
   meta: PaginationMeta;
 }
 
+export interface AdminsResponse {
+  data: Admin[];
+  meta: PaginationMeta;
+}
+
 export interface CreateVehicleData {
   plate: string;
   model: string;
@@ -217,69 +227,48 @@ export const statusCarOptions = [
 ];
 
 export const yearCarOptions = [
-  "2024",
-  "2023",
-  "2022",
-  "2021",
-  "2020",
-  "2019",
-  "2018",
-  "2017",
-  "2016",
-  "2015",
-  "2014",
-  "2013",
-  "2012",
-  "2011",
-  "2010",
-  "2009",
-  "2008",
-  "2007",
-  "2006",
-  "2005",
-  "2004",
-  "2003",
-  "2002",
-  "2001",
-  "2000",
-  "1999",
-  "1998",
-  "1997",
-  "1996",
-  "1995",
-  "1994",
-  "1993",
-  "1992",
-  "1991",
-  "1990",
-  "1989",
-  "1988",
-  "1987",
-  "1986",
-  "1985",
-  "1984",
-  "1983",
-  "1982",
-  "1981",
-  "1980",
-  "1979",
-  "1978",
-  "1977",
-  "1976",
-  "1975",
-  "1974",
-  "1973",
-  "1972",
-  "1971",
-  "1970",
-  "1969",
-  "1968",
-  "1967",
-  "1966",
-  "1965",
-  "1964",
-  "1963",
-  "1962",
-  "1961",
-  "1960",
+  "2024", "2023", "2022", "2021", "2020", "2019",
+  "2018", "2017", "2016", "2015", "2014", "2013",
+  "2012", "2011", "2010", "2009", "2008", "2007",
+  "2006", "2005", "2004", "2003", "2002", "2001",
+  "2000", "1999", "1998", "1997", "1996", "1995",
+  "1994", "1993", "1992", "1991", "1990", "1989",
+  "1988", "1987", "1986", "1985", "1984", "1983",
+  "1982", "1981", "1980", "1979", "1978", "1977",
+  "1976", "1975", "1974", "1973", "1972", "1971",
+  "1970", "1969", "1968", "1967", "1966", "1965", 
+  "1964", "1963", "1962", "1961", "1960",
 ];
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    lastPage?: number;
+    limit: number;
+  };
+}
+
+export interface Company {
+  id: string;
+  user:UserData;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  phone?: string;
+}
+
+
+export interface UpdateCompanyData {
+  name?: string;
+  email?: string;
+  password?: string;
+  cnpj?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  phone?: string;
+}

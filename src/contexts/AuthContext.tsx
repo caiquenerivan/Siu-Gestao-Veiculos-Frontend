@@ -29,8 +29,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     async function loadStorageData() {
       // Tenta recuperar os dados salvos no navegador
-      const storedUser = localStorage.getItem('@AppFrota:user');
-      const storedToken = localStorage.getItem('@AppFrota:token');
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
 
       if (storedUser && storedToken) {
         // 1. Restaura o usuário no estado
@@ -56,8 +56,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { access_token, user: userData } = response;
 
       // 2. Salva no LocalStorage (para persistir após F5)
-      localStorage.setItem('@AppFrota:user', JSON.stringify(userData));
-      localStorage.setItem('@AppFrota:token', access_token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', access_token);
 
       // 3. Define o token como padrão para TODAS as próximas requisições do Axios
       api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
@@ -76,8 +76,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   function signOut() {
-    localStorage.removeItem('@AppFrota:user');
-    localStorage.removeItem('@AppFrota:token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     
     // Remove o token do Axios
     delete api.defaults.headers.common['Authorization'];

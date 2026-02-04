@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail } from 'lucide-react'; // Ícones
+import { Lock, Mail, Building2, Car } from 'lucide-react'; // Ícones
 import { useAuth } from '../../contexts/AuthContext';
+import { Link } from 'react-router-dom';
+
 
 export function Login() {
     const navigate = useNavigate();
@@ -14,8 +16,10 @@ export function Login() {
     const { signed } = useAuth();
     
     useEffect(() => {
-        if (signed) {
+        if (signed && user && user.role) {
             const role = user?.role?.toUpperCase(); 
+            console.log(user.role);
+            
             switch (role) {
                 case 'ADMIN':
                     navigate('/admin/dashboard');
@@ -37,7 +41,7 @@ export function Login() {
                     localStorage.clear();
             }
         }
-    }, [signed, navigate]);
+    }, [signed, user, navigate]);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -63,6 +67,9 @@ export function Login() {
                     break;
                 case 'MOTORISTA': // ou 'MOTORISTA', depende de como você salvou no banco
                     navigate('/driver/dashboard');
+                    break;
+                case 'COMPANY':
+                    navigate('/company/dashboard');
                     break;
                 default:
                     // Se não tiver role definida ou for desconhecida
@@ -138,6 +145,32 @@ export function Login() {
                     >
                         {isSubmitting ? 'Entrando...' : 'Entrar'}
                     </button>
+
+                    <div className="mt-8 pt-6 border-t border-gray-100">
+                        <p className="text-center text-sm text-gray-500 mb-4">
+                            Ainda não possui uma conta?
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Botão para Cadastro de Empresa */}
+                            <Link
+                            to="/signup/company"
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-indigo-200 rounded-lg text-indigo-700 hover:bg-indigo-50 transition-colors text-sm font-medium group"
+                            >
+                            <Building2 size={18} className="text-indigo-500 group-hover:text-indigo-700" />
+                            Sou Empresa
+                            </Link>
+
+                            {/* Botão para Cadastro de Motorista */}
+                            <Link
+                            to="/signup/driver"
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-emerald-200 rounded-lg text-emerald-700 hover:bg-emerald-50 transition-colors text-sm font-medium group"
+                            >
+                            <Car size={18} className="text-emerald-500 group-hover:text-emerald-700" />
+                            Sou Motorista
+                            </Link>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>

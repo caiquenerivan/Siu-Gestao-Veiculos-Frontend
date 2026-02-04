@@ -1,14 +1,12 @@
-import { Edit, Eye, Search, Trash, Briefcase, FileText, ChevronLeft, ChevronRight } from "lucide-react"; // Removido QrCode, adicionado Briefcase/FileText
+import { Edit, Eye, Search, Trash, Briefcase, ChevronLeft, ChevronRight } from "lucide-react"; // Removido QrCode, adicionado Briefcase/FileText
 import { useEffect, useState } from "react";
-// Assumindo que você criará/já tem esses modais e tipos baseados nos de motorista
-//import OperatorInfoModal from "./OperatorInfo"; 
-//import OperatorCreateModal from "./CreateOperator";
-//import OperatorUpdateModal from "./EditOperator";
 import type { Operator, OperatorsResponse, PaginationMeta, CreateOperatorData } from "../../types";
-import { api, operatorService } from "../../services/api"; // Assumindo existência do operatorService
+import { api } from "../../services/api"; // Assumindo existência do operatorService
 import OperatorCreateModal from "../../components/Operator/CreateOperator";
 import OperatorInfoModal from "../../components/Operator/OperatorInfoModal";
 import OperatorUpdateModal from "../../components/Operator/EditOperator";
+import { operatorService } from "../../services/operatorService";
+import { useAuth } from "../../contexts/AuthContext";
 
 export const OperatorList: React.FC = () => {
   // --- Estados Tipados ---
@@ -25,23 +23,42 @@ export const OperatorList: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const {user} = useAuth();
   
   const LIMIT = 10;
 
   // --- Função de Busca ---
   const fetchOperators = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      // Alterado endpoint para /operators
-      const response = await api.get<OperatorsResponse>(`/operators?page=${page}&limit=${LIMIT}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });      
-      console.log("RESPOSTA DA API:", response.data); // <--- OLHE ISSO NO CONSOLE DO NAVEGADOR
+      let response;
+      let companyId = user?.companyId;
+      // O axios.get recebe o tipo <DriversResponse> para o TS entender o retorno
+      if(user?.role === 'ADMIN'){
+
+        response = await api.get<OperatorsResponse>(`/operators?page=${page}&limit=${LIMIT}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });      
+      } else if ((user?.role === 'COMPANY' || user?.role === 'OPERADOR')&& companyId){
+        response = await operatorService.findByCompanyId(companyId)
+      }
       
-      setOperators(response.data.data);
-      setMeta(response.data.meta);
+      const listaDeOperadores = response?.data.data || [];
+      
+      setOperators(listaDeOperadores);
+      if (response?.data.meta) {
+        setMeta({
+          total: response.data.meta.total,
+          page: response.data.meta.page,
+          limit: response.data.meta.limit,
+          // AQUI ESTÁ A CORREÇÃO:
+          // Se lastPage for undefined, usa 1 como padrão
+          lastPage: response.data.meta.lastPage ?? 1, 
+        });
+      }
     } catch (error) {
       console.error("Erro ao buscar operadores", error);
     } finally {
@@ -55,12 +72,7 @@ export const OperatorList: React.FC = () => {
 
   // --- Helpers ---
   
-  // Função auxiliar para exibir CPF ou CNPJ formatado (simplificado)
-  const formatDocument = (op: Operator) => {
-    if (op.type === 'PJ' && op.cnpj) return op.cnpj;
-    if (op.type === 'PF' && op.cpf) return op.cpf;
-    return '-';
-  };
+
 
   const handleViewDetails = (operator: Operator) => {
     setInfoOperator(operator);
@@ -188,14 +200,6 @@ export const OperatorList: React.FC = () => {
                         <div className="text-gray-500 text-xs">{op.user.email}</div>
                       </td>
 
-                      {/* Tipo (CLT/PJ) */}
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${
-                            op.type === 'PF' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
-                        }`}>
-                            {op.type}
-                        </span>
-                      </td>
 
                       {/* Empresa e Região */}
                       <td className="p-4">
@@ -204,18 +208,11 @@ export const OperatorList: React.FC = () => {
                               <Briefcase size={14} />
                            </div>
                            <div>
-                              <div className="font-medium">{op.company || '-'}</div>
+
                               <div className="text-xs text-gray-500">{op.region || 'Sem região'}</div>
                            </div>
                         </div>
                       </td>
-
-                      {/* Documento (CPF/CNPJ) */}
-                      <td className="p-4 font-mono text-gray-600 flex items-center gap-2">
-                        <FileText size={14} className="text-gray-400"/>
-                        {formatDocument(op)}
-                      </td>
-
                       {/* Botões de Ação (SEM QR CODE) */}
                       <td className="p-4 text-right">
                         <div className="flex justify-end gap-2">
