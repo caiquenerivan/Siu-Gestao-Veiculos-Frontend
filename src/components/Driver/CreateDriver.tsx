@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react'; // Adicione useEffect
 import { 
-  X, Mail, Briefcase, IdCard, Pill, Plus, Lock, Camera, Upload 
+  X, Mail, IdCard, Pill, Plus, Lock, Camera, Upload, 
+  Building2,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { companyService } from '../../services/companyService';
+import type { Company, PaginationMeta } from '../../types';
 
 // 1. Atualize a Interface para aceitar o arquivo opcional
 export interface DriverCreateData {
@@ -9,7 +15,7 @@ export interface DriverCreateData {
     email: string;
     password: string;
     cnh: string;
-    company: string;
+    companyId: string;
     status: string;
     photoUrl: string;
     toxicologyExam: Date | null;
@@ -32,7 +38,7 @@ const DriverCreateModal: React.FC<DriverCreateModalProps> = ({
     email: '',
     password: '',
     cnh: '',
-    company: '',
+    companyId: '',
     status: 'PENDENTE',
     photoUrl: '', // Isso será preenchido pelo backend depois
     toxicologyExam: '',
@@ -44,14 +50,47 @@ const DriverCreateModal: React.FC<DriverCreateModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
-  // Limpa o preview quando o modal fecha ou abre
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  
+
+
+  const {user} = useAuth();
+
+  const [page, setPage] = useState(1);
+
+  const LIMIT = 100
+ 
+
   useEffect(() => {
-    if (!isOpen) {
-        setPreviewUrl('');
-        setSelectedFile(null);
-        setFormData(initialFormState);
+    if (isOpen && user?.role === 'ADMIN') {
+      const fetchCompanies = async () => {
+        try {
+          setLoadingCompanies(true);
+          const response = await companyService.findMany(page, LIMIT);
+          const companiesData = (response.data as any).data || response.data || [];
+
+          const metaData = (response.data as any).meta;
+          if (metaData) {
+            setMeta({
+              total: response.data.meta.total,
+              page: response.data.meta.page,
+              limit: response.data.meta.limit,
+              lastPage: response.data.meta.lastPage ?? 1, 
+            });
+          }
+
+          setCompanies(companiesData);
+        } catch (error) {
+          console.error("Erro ao buscar empresas", error);
+        } finally {
+          setLoadingCompanies(false);
+        }
+      };
+      fetchCompanies();
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -71,6 +110,7 @@ const DriverCreateModal: React.FC<DriverCreateModalProps> = ({
     }
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -79,7 +119,7 @@ const DriverCreateModal: React.FC<DriverCreateModalProps> = ({
       email: formData.email,
       password: formData.password,
       cnh: formData.cnh,
-      company: formData.company,
+      companyId: formData.companyId,
       status: formData.status,
       photoUrl: '', // Deixa vazio, o backend vai gerar
       toxicologyExam: formData.toxicologyExam ? new Date(formData.toxicologyExam) : null,
@@ -211,13 +251,37 @@ const DriverCreateModal: React.FC<DriverCreateModalProps> = ({
                 <input type="text" name="cnh" value={formData.cnh} onChange={handleChange} className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="00000000000" required />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Empresa / Frota</label>
-                <div className="flex items-center gap-2">
-                    <Briefcase className="text-gray-400" size={20} />
-                    <input type="text" name="company" value={formData.company} onChange={handleChange} className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="Nome da empresa" />
+              {/* SELECT DE EMPRESA - APENAS ADMIN */}
+              {user?.role === 'ADMIN' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-1">
+                     <Building2 size={14} /> Empresa Responsável
+                  </label>
+                  <div className="relative">
+                      {loadingCompanies ? (
+                        <div className="w-full p-2.5 bg-gray-100 border rounded-lg text-gray-500 text-sm animate-pulse">
+                          Carregando empresas...
+                        </div>
+                      ) : (
+                        <select
+                          name="companyId"
+                          value={formData.companyId}
+                          onChange={handleChange}
+                          className="w-full p-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        >
+                          <option value="">Sem empresa vinculada</option>
+                          {companies.map((comp) => (
+                            <option key={comp.id} value={comp.id}>
+                              {comp.user.name} {comp.user.cnpj ? `(${comp.user.cnpj})` : ''}
+                            </option>
+                          ))}
+                          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"><ChevronLeft size={16}/></button>
+                <button onClick={() => setPage(p => Math.min(meta?.lastPage || 1, p + 1))} disabled={page === (meta?.lastPage || 1)} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"><ChevronRight size={16}/></button>
+                        </select>
+                      )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase">Validade Toxicológico</label>

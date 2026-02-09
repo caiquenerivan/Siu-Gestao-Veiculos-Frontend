@@ -34,7 +34,10 @@ export const AdminsList: React.FC = () => {
       }
 
       const lista = ((response.data as any).data || response.data || []) as Admin[];
+      console.log(lista);
+      
       setAdmins(lista);
+      
 
       const metaData = (response.data as any).meta;
       if (metaData) {

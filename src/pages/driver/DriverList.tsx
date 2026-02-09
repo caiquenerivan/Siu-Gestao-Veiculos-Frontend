@@ -50,7 +50,7 @@ export const DriverList: React.FC = () => {
         response = await driverService.findByCompanyId(companyId)
       }
 
-      const listaDeMotoristas = response?.data.data || [];
+      const listaDeMotoristas = (response?.data as any).data || response?.data || [];
       const metaData = response?.data.meta;
       
       setDrivers(listaDeMotoristas); 
@@ -194,50 +194,55 @@ export const DriverList: React.FC = () => {
   */
 
   const handleSaveUpdate = async (data: any) => {
-  if (!selectedDriver) return;
-  
-  setLoading(true);
-  try {
-    const formData = new FormData();
-
-    // 1. Anexa a nova foto se o usuário selecionou uma
-    if (data.file) {
-      formData.append('file', data.file);
-    }
-
-    // 2. Anexa os campos de texto "soltos"
-    formData.append('name', data.name);
-    formData.append('email', data.email);
-    formData.append('cnh', data.cnh);
-    formData.append('company', data.company || '');
-    formData.append('status', data.status);
+    if (!selectedDriver) return;
     
-    if (data.toxicologyExam) {
-       formData.append('toxicologyExam', new Date(data.toxicologyExam).toISOString());
+    setLoading(true);
+    try {
+      const formData = new FormData();
+
+      // 1. Anexa a nova foto se o usuário selecionou uma
+      if (data.file instanceof File) {
+        formData.append('file', data.file);
+      }
+
+      // 2. Anexa os campos de texto "soltos"
+      formData.append('name', data.name);
+      formData.append('email', data.email);
+      formData.append('cnh', data.cnh);
+      formData.append('status', data.status);
+      if (data.cpf) {
+        formData.append('cpf', data.cpf);
+      }
+      if (data.companyId) {
+        formData.append('cpf', data.cpf);
+      }
+      if (data.toxicologyExam) {
+        formData.append('toxicologyExam', new Date(data.toxicologyExam).toISOString());
+      }
+
+      // Só envia senha se o usuário digitou algo
+      if (data.password && data.password.trim() !== '') {
+        formData.append('password', data.password);
+      }
+
+      // 3. Envia o PATCH
+      // Note que não usamos 'jsonData' aqui para simplificar, enviamos tudo solto
+      // Se quiser usar jsonData igual no create, teria que agrupar e fazer JSON.stringify
+      // Mas meu código do Controller acima (Passo 1) está preparado para receber SOLTO (body.name, body.email...)
+      
+      await api.patch(`/drivers/${selectedDriver.id}`, formData);
+
+      alert('Motorista atualizado com sucesso!');
+      setIsEditModalOpen(false);
+      setSelectedDriver(null);
+      fetchDrivers();
+    } catch (error) {
+      console.error("Erro ao atualizar motorista:", error);
+      alert('Erro ao atualizar motorista.');
+    } finally {
+      setLoading(false);
     }
-
-    // Só envia senha se o usuário digitou algo
-    if (data.password && data.password.trim() !== '') {
-      formData.append('password', data.password);
-    }
-
-    // 3. Envia o PATCH
-    // Note que não usamos 'jsonData' aqui para simplificar, enviamos tudo solto
-    // Se quiser usar jsonData igual no create, teria que agrupar e fazer JSON.stringify
-    // Mas meu código do Controller acima (Passo 1) está preparado para receber SOLTO (body.name, body.email...)
-    
-    await api.patch(`/drivers/${selectedDriver.id}`, formData);
-
-    alert('Motorista atualizado com sucesso!');
-    setIsEditModalOpen(false);
-    fetchDrivers();
-  } catch (error) {
-    console.error("Erro ao atualizar motorista:", error);
-    alert('Erro ao atualizar motorista.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
   // --- Renderização ---
@@ -290,14 +295,14 @@ export const DriverList: React.FC = () => {
 
                       {/* Veículo (Com verificação de nulidade via Optional Chaining) */}
                       <td className="p-4">
-                        {driver.vehicle ? (
+                        {driver.vehicle && driver.vehicle.length > 0 ? (
                           <div className="flex items-center gap-2 text-gray-700">
                             <div className="p-1.5 bg-blue-50 rounded text-blue-600">
                               <Car size={16} />
                             </div>
                             <div>
-                              <div className="font-medium">{driver.vehicle.model}</div>
-                              <div className="text-xs text-gray-500">{driver.vehicle.plate}</div>
+                              <div className="font-medium">{driver.vehicle[0].model}</div>
+                              <div className="text-xs text-gray-500">{driver.vehicle[0]?.plate}</div>
                             </div>
                           </div>
                         ) : (

@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   X, 
   User, 
   Mail, 
   Calendar, 
   Briefcase,
-  Van,
   IdCard,
   Car,
-  Pill
+  Pill,
 } from 'lucide-react';
 import type { Driver } from '../../types';
+import { companyService } from '../../services/companyService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface DriverInfoModalProps {
   isOpen: boolean;
@@ -19,7 +20,10 @@ interface DriverInfoModalProps {
 }
 
 const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ isOpen, onClose, driver }) => {
-    if (!isOpen || !driver) return null;
+
+  if (!isOpen || !driver) return null;
+
+  const [companyName, setCompanyName] = useState<string>('');
 
   // Função auxiliar para formatar datas
   const formatDate = (dateString: string) => {
@@ -33,6 +37,28 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ isOpen, onClose, driv
       ? 'bg-green-100 text-green-800 border-green-200' 
       : 'bg-red-100 text-red-800 border-red-200';
   };
+
+  const {user} = useAuth();
+
+  useEffect(() => {
+    if (isOpen && (user?.role === 'ADMIN' || user?.role === 'OPERADOR' || user?.role === 'MOTORISTA')) {
+      const fetchCompany = async () => {
+        try {
+          if(!driver.companyId){
+            const response = "Autônomo";
+            setCompanyName(response);
+            return response;
+          } 
+            const response = await companyService.findById(driver.companyId);
+            console.log(response.user.name);
+            setCompanyName(response.user.name);
+        } catch (error) {
+          console.error("Erro ao buscar empresas", error);
+        } 
+      };
+      fetchCompany();
+    }
+  }, [isOpen, driver]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -92,26 +118,47 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ isOpen, onClose, driv
               </h3>
               
               <div className="flex gap-3 items-center">
-                <IdCard className="text-gray-400 mt-1" size={30} />
+                <Car className="text-gray-400 mt-1" size={30} />
                 <div className="flex flex-col justify-center w-full">
                   <p className="text-sm text-gray-500">CNH</p>
                   <p className="font-medium text-gray-900">{driver.cnh || '---'}</p>
                 </div>
               </div>
               <div className="flex gap-3 items-center">
-                <Car className="text-gray-400 mt-1" size={30} />
+                <IdCard className="text-gray-400 mt-1" size={30} />
                 <div className="flex flex-col justify-center w-full">
-                  <p className="text-sm text-gray-500">Veículo</p>
-                  <p className="font-medium text-gray-900">{driver.vehicle?.brand  || '---'} - {driver.vehicle?.model  || '---'}</p>
+                  <p className="text-sm text-gray-500">CPF</p>
+                  <p className="font-medium text-gray-900">{driver.user.cpf || '---'}</p>
                 </div>
               </div>
-              <div className="flex gap-3 items-center">
-                <Van className="text-gray-400 mt-1" size={30} />
-                <div className="flex flex-col justify-center w-full">
-                  <p className="text-sm text-gray-500">Placa</p>
-                  <p className="font-medium text-gray-900">{driver.vehicle?.plate || '---'}</p>
+              <div className="flex items-center gap-3">
+                <Pill className="text-gray-400 mt-1" size={30} />
+                <div className="overflow-hidden flex flex-col justify-center w-full">
+                  <p className="text-sm text-gray-500">Validade Exame toxicológico</p>
+                  <p className="font-medium text-gray-900">{formatDate(driver.toxicologyExam)}</p>
                 </div>
               </div>
+              {
+              } 
+              
+              {/*
+              
+                <div className="flex gap-3 items-center">
+                  <Car className="text-gray-400 mt-1" size={30} />
+                  <div className="flex flex-col justify-center w-full">
+                    <p className="text-sm text-gray-500">Veículo</p>
+                    <p className="font-medium text-gray-900">{//driver.vehicle?.brand  || '---'} - {//river.vehicle?.model  || '---'}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3 items-center">
+                  <Van className="text-gray-400 mt-1" size={30} />
+                  <div className="flex flex-col justify-center w-full">
+                    <p className="text-sm text-gray-500">Placa</p>
+                    <p className="font-medium text-gray-900">{driver.vehicle?.plate || '---'}</p>
+                  </div>
+                </div>
+              */}
+
             </div>
 
             {/* Seção 2: Contato e Empresa */}
@@ -134,7 +181,7 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ isOpen, onClose, driv
                 <Briefcase className="text-gray-400 mt-1" size={30} />
                 <div className="overflow-hidden flex flex-col justify-center w-full">
                   <p className="text-sm text-gray-500">Empresa</p>
-                  <p className="font-medium text-gray-900">{driver.company}</p>
+                  <p className="font-medium text-gray-900">{companyName}</p>
                 </div>
               </div>
 
@@ -142,14 +189,7 @@ const DriverInfoModal: React.FC<DriverInfoModalProps> = ({ isOpen, onClose, driv
                 <Calendar className="text-gray-400 mt-1" size={30} />
                 <div className="overflow-hidden flex flex-col justify-center w-full">
                   <p className="text-sm text-gray-500">Data de Criação do Perfil</p>
-                  <p className="font-medium text-gray-900">{formatDate(driver.createdAt)}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Pill className="text-gray-400 mt-1" size={30} />
-                <div className="overflow-hidden flex flex-col justify-center w-full">
-                  <p className="text-sm text-gray-500">Validade Exame toxicológico</p>
-                  <p className="font-medium text-gray-900">{formatDate(driver.toxicologyExam)}</p>
+                  <p className="font-medium text-gray-900">{formatDate(driver.user.createdAt)}</p>
                 </div>
               </div>
             </div>

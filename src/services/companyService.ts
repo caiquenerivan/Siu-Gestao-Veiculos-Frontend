@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { Company, UpdateCompanyData } from "../types";
+import type { Company, PaginatedResponse, UpdateCompanyData } from "../types";
 
 export const companyService = {
   getByUserId: async (userId: string): Promise<any> => {
@@ -39,19 +39,19 @@ export const companyService = {
       throw error;
     }
   },
-  findMany: async(): Promise<Company[]> => {
+  findMany: async(page: number, limit: number)=> {
     try{
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Usuário não encontrado');
       }
-      const response = await api.get<Company[]>('/companies', {
+      const response = await api.get<PaginatedResponse<Company[]>>(`/companies?page=${page}&limit=${limit}`, {
         headers: {
           Authorization: `Bearer ${token}`
         },
       });
 
-      return response.data;
+      return response;
 
     } catch (err) {
       console.error('Erro ao buscar empresas' , err);

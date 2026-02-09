@@ -2,7 +2,6 @@ import { Edit, Eye, Search, Trash, Building2, ChevronLeft, ChevronRight, Phone, 
 import { useEffect, useState } from "react";
 // Certifique-se de ter esses tipos definidos ou ajuste os imports
 import type { Company, PaginationMeta } from "../../types"; 
-import { api } from "../../services/api";
 import { companyService } from "../../services/companyService"; 
 
 // Importe seus modais de Empresa (Assumindo que você criará ou já tem)
@@ -33,19 +32,15 @@ export const CompanyList: React.FC = () => {
     setLoading(true);
     try {
       // Como é apenas ADMIN, chamamos a rota global de empresas
-      const response = await api.get(`/companies`, {
-        params: {
-          page,
-          limit: LIMIT
-        }
-      });
+      const response = await companyService.findMany(page, LIMIT);
       
       // Tratamento para garantir array (mesma lógica do seu OperatorList)
-      const listaDeEmpresas = response?.data.data || response?.data || [];
+      const listaDeEmpresas = (response?.data  as any).data || response?.data || [];
       
       setCompanies(listaDeEmpresas);
+      const metaData = response.data.meta;
 
-      if (response?.data.meta) {
+      if (metaData) {
         setMeta({
           total: response.data.meta.total,
           page: response.data.meta.page,

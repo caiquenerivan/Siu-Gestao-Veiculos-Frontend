@@ -13,13 +13,17 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api'; // Certifique-se que o caminho está correto
 import { useAuth } from '../../contexts/AuthContext'; // Certifique-se que o caminho está correto
+import type { Company } from '../../types';
 
 // Interfaces auxiliares
+
+/*
 interface SimpleCompany {
   id: string;
   user: { name: string; email: string };
   cnpj?: string;
 }
+*/
 
 interface DriverUpdateModalProps {
   isOpen: boolean;
@@ -43,13 +47,14 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
     name: '',
     email: '',
     cnh: '',
+    cpf: '',
     companyId: '', // Mudamos de 'company' (texto) para 'companyId' (uuid)
     status: 'REGULAR',
     photoUrl: '',
     toxicologyExam: '',
   });
 
-  const [companies, setCompanies] = useState<SimpleCompany[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -79,6 +84,7 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
         name: driver.user?.name || '',
         email: driver.user?.email || '',
         cnh: driver.cnh || '',
+        cpf: driver.user?.cpf || '',
         // Tenta pegar o ID da empresa, seja direto ou aninhado
         companyId: driver.companyId || driver.company?.id || '', 
         status: driver.status || 'REGULAR',
@@ -109,11 +115,21 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave({
-      ...formData,
+
+    const { photoUrl, ...restOfData } = formData;
+
+    const payload: any = {
+      ...restOfData,
       toxicologyExam: formData.toxicologyExam ? new Date(formData.toxicologyExam) : null,
-      file: selectedFile || undefined
-    });
+    };
+
+    // Só adicionamos a propriedade 'file' se selectedFile existir (não for null).
+    // Se for null, o campo 'file' nem vai no objeto, e o backend mantém a foto antiga.
+    if (selectedFile) {
+      payload.file = selectedFile;
+    }
+
+    await onSave(payload);
   };
 
   return (
@@ -210,40 +226,22 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
                   required
                 />
               </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-500 uppercase">CPF</label>
+                <input
+                  type="text"
+                  name="cpf"
+                  value={formData.cpf}
+                  onChange={handleChange}
+                  className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  placeholder="00000000000"
+                />
+              </div>
 
-              {/* SELECT DE EMPRESA - APENAS ADMIN */}
-              {user?.role === 'ADMIN' && (
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-1">
-                     <Building2 size={14} /> Empresa Responsável
-                  </label>
-                  <div className="relative">
-                      {loadingCompanies ? (
-                        <div className="w-full p-2.5 bg-gray-100 border rounded-lg text-gray-500 text-sm animate-pulse">
-                          Carregando empresas...
-                        </div>
-                      ) : (
-                        <select
-                          name="companyId"
-                          value={formData.companyId}
-                          onChange={handleChange}
-                          className="w-full p-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                        >
-                          <option value="">Sem empresa vinculada</option>
-                          {companies.map((comp) => (
-                            <option key={comp.id} value={comp.id}>
-                              {comp.user.name} {comp.cnpj ? `(${comp.cnpj})` : ''}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Seção 2: Contato e Saúde */}
-            <div className="space-y-4">
+            <div className="space-y-5 h-full flex-col">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider border-b pb-2 flex items-center gap-2">
                 <Mail size={16} /> Contato & Saúde
               </h3>
@@ -261,10 +259,11 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Validade Toxicológico</label>
+              <div className="space-y-1">                  
+                <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-1 justify-center">
+                  <Pill size={14}/> Validade Toxicológico
+                </label>
                 <div className="flex items-center gap-2">
-                    <Pill className="text-gray-400" size={20} />
                     <input
                     type="date"
                     name="toxicologyExam"
@@ -274,6 +273,36 @@ const DriverUpdateModal: React.FC<DriverUpdateModalProps> = ({
                     />
                 </div>
               </div>
+
+              {/* SELECT DE EMPRESA - APENAS ADMIN */}
+              {user?.role === 'ADMIN' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase flex items-center gap-1 justify-center">
+                     <Building2 size={14} /> Empresa Responsável
+                  </label>
+                  <div className="relative">
+                      {loadingCompanies ? (
+                        <div className="w-full p-2.5 bg-gray-100 border rounded-lg text-gray-500 text-sm animate-pulse">
+                          Carregando empresas...
+                        </div>
+                      ) : (
+                        <select
+                          name="companyId"
+                          value={formData.companyId}
+                          onChange={handleChange}
+                          className="w-full p-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        >
+                          <option value="">Sem empresa vinculada</option>
+                          {companies.map((comp) => (
+                            <option key={comp.id} value={comp.id}>
+                              {comp.user.name} {comp.user.cnpj ? `(${comp.user.cnpj})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

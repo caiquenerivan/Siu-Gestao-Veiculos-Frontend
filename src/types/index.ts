@@ -27,8 +27,8 @@ export interface Driver {
   publicToken: string;
   createdAt: string; // Vem como string ISO do JSON
   user: UserData;    // Relação obrigatória
-  vehicle?: VehicleData | null; // Relação opcional (pode ser null)
-  company: string;
+  vehicle?: Vehicle[] | null; // Relação opcional (pode ser null)
+  companyId: string;
   toxicologyExam: string;
 }
 
