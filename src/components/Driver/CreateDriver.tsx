@@ -276,7 +276,7 @@ const DriverCreateModal: React.FC<DriverCreateModalProps> = ({
                             </option>
                           ))}
                           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"><ChevronLeft size={16}/></button>
-                <button onClick={() => setPage(p => Math.min(meta?.lastPage || 1, p + 1))} disabled={page === (meta?.lastPage || 1)} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"><ChevronRight size={16}/></button>
+                          <button onClick={() => setPage(p => Math.min(meta?.lastPage || 1, p + 1))} disabled={page === (meta?.lastPage || 1)} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"><ChevronRight size={16}/></button>
                         </select>
                       )}
                   </div>

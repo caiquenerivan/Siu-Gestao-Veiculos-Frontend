@@ -73,14 +73,20 @@ const DriverQRCodeModal = ({ driver, onClose }: { driver: Driver; onClose: () =>
           </div>
           
           <div className="text-center space-y-2 mb-6 w-full">
-             {/* Info Veículo */}
-            {driver.vehicle ? (
-               <div className="bg-gray-100 p-3 rounded-lg">
-                 <p className="font-bold text-gray-800 text-lg">{driver.vehicle.plate}</p>
-                 <p className="text-gray-500 text-sm">{driver.vehicle.model}</p>
-               </div>
+            {/* Info Veículo */}
+            {driver.vehicle && driver.vehicle.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                {driver.vehicle.map((v: any) => (
+                  <div key={v.id || v.plate} className="bg-gray-100 p-3 rounded-lg border border-gray-200">
+                    <p className="font-bold text-gray-800 text-lg">{v.plate}</p>
+                    <p className="text-gray-500 text-sm">{v.model}</p>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <span className="text-yellow-600 text-sm bg-yellow-50 px-3 py-1 rounded-full">Veículo não vinculado</span>
+              <span className="text-yellow-600 text-sm bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">
+                Veículo não vinculado
+              </span>
             )}
 
             <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mt-4 bg-gray-50 p-2 rounded border">

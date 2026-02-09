@@ -3,9 +3,11 @@ import {
   X, Mail, Briefcase, Plus, Lock, MapPin, User,
   IdCard,
   Building2,
-  Loader2
+  Loader2,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
-import type { Company, CreateOperatorData } from '../../types'; // Certifique-se de importar o tipo correto
+import type { Company, CreateOperatorData, PaginationMeta } from '../../types'; // Certifique-se de importar o tipo correto
 import { useAuth } from '../../contexts/AuthContext';
 import { companyService } from '../../services/companyService';
 
@@ -38,6 +40,11 @@ const OperatorCreateModal: React.FC<OperatorCreateModalProps> = ({
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [page, setPage] = useState(1);
+  const LIMIT = 100;
+
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+
   // Reseta o form ao fechar
   useEffect(() => {
     // 1. A condição deve ser SE ESTIVER ABERTO (isOpen)
@@ -58,13 +65,22 @@ const OperatorCreateModal: React.FC<OperatorCreateModalProps> = ({
             
             // Adicione params limit=100 para pegar todas as empresas no select
             // (Assumindo que findMany aceite configs ou você use api.get direto)
-            const response = await companyService.findMany(); 
+            const response = await companyService.findMany(page, LIMIT); 
             
             // 2. CORREÇÃO DE SEGURANÇA PARA DADOS PAGINADOS
             // Verifica se a resposta é um array direto ou um objeto paginado { data: [...] }
             // Ajuste conforme o retorno real do seu companyService
             const listaEmpresas = (response as any).data?.data || (response as any).data || response || [];
             console.log(listaEmpresas);
+            const metaData = (response.data as any).meta;
+            if (metaData) {
+              setMeta({
+                total: response.data.meta.total,
+                page: response.data.meta.page,
+                limit: response.data.meta.limit,
+                lastPage: response.data.meta.lastPage ?? 1, 
+              });
+            }
             
             if (Array.isArray(listaEmpresas)) {
               setCompanies(listaEmpresas);
@@ -230,7 +246,11 @@ const OperatorCreateModal: React.FC<OperatorCreateModalProps> = ({
                       <option key={company.id} value={company.id}>                        
                         {company.user.name} {company.user.cnpj ? `(${company.user.cnpj})` : ''}
                       </option>
-                    ))}
+                      
+                    ))
+                    }
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"><ChevronLeft size={16}/></button>
+                    <button onClick={() => setPage(p => Math.min(meta?.lastPage || 1, p + 1))} disabled={page === (meta?.lastPage || 1)} className="px-3 py-1 bg-white border rounded hover:bg-gray-50 disabled:opacity-50"><ChevronRight size={16}/></button>
                   </select>
                   )}
                 </div>
