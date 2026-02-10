@@ -180,6 +180,7 @@ export const ProfilePage: React.FC = () => {
           payload.city = formData.city;
           payload.state = formData.state;
           payload.zipCode = formData.zipCode;
+
         } 
         else if (userRole === 'OPERADOR') {
           payload.region = formData.region;
@@ -189,7 +190,7 @@ export const ProfilePage: React.FC = () => {
           // payload.companyName = formData.companyName; 
         }
 
-        await profileService.updateUserJson(userId, payload);
+        await profileService.updateUserJson(userId, payload, userRole);
       }
 
       alert('Perfil atualizado com sucesso!');

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Loader2, Palette, Calendar, Building2, User } from 'lucide-react';
 import type { Vehicle } from '../../types';
 import { api } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SimpleDriver {
   id: string;
@@ -28,9 +29,11 @@ const VehicleUpdateModal: React.FC<VehicleUpdateModalProps> = ({ isOpen, onClose
     brand: '', model: '', plate: '', licensingDate: '', renavam: '', driverId: '', companyId: '', year: '', color: '', status: '', ownerName: ''
   });
 
-    const [drivers, setDrivers] = useState<SimpleDriver[]>([]);
-    const [companies, setCompanies] = useState<SimpleCompany[]>([]);
-    const [loadingData, setLoadingData] = useState(false);
+  const [drivers, setDrivers] = useState<SimpleDriver[]>([]);
+  const [companies, setCompanies] = useState<SimpleCompany[]>([]);
+  const [loadingData, setLoadingData] = useState(false);
+
+  const {user} = useAuth();
 
   useEffect(() => {
     if (isOpen && vehicle) {
@@ -165,24 +168,27 @@ const VehicleUpdateModal: React.FC<VehicleUpdateModalProps> = ({ isOpen, onClose
                 </select>
               </div>
               {/* Select de Motorista */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-600 flex items-center gap-1">
-                  <User size={14} /> Motorista Principal
-                </label>
-                <select 
-                  value={formData.driverId}
-                  onChange={e => setFormData({...formData, driverId: e.target.value})}
-                  disabled={loadingData}
-                  className="w-full p-2 bg-white border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                >
-                  <option value={vehicle?.driverId || ''}>{vehicle ? vehicle.driver?.user?.name : 'Sem motorista vinculado'  }</option>
-                  {drivers.map(driver => (
-                    <option key={driver.id} value={driver.id}>
-                      {driver.user.name} ({driver.cnh})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {user?.role !== 'MOTORISTA' && (
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                    <User size={14} /> Motorista Principal
+                  </label>
+                  <select 
+                    value={formData.driverId}
+                    onChange={e => setFormData({...formData, driverId: e.target.value})}
+                    disabled={loadingData}
+                    className="w-full p-2 bg-white border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                  >
+                    <option value={vehicle?.driverId || ''}>{vehicle ? vehicle.driver?.user?.name : 'Sem motorista vinculado'  }</option>
+                    {drivers.map(driver => (
+                      <option key={driver.id} value={driver.id}>
+                        {driver.user.name} ({driver.cnh})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
             </div>
             {loadingData && (

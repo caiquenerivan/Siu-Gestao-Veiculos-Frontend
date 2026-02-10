@@ -6,9 +6,11 @@ import {
   Save,
   User,
   Building,
-  MapPin
+  MapPin,
+  ChevronDown // Adicionei ícone para o select
 } from 'lucide-react';
-import type { Operator } from '../../types'; // Certifique-se de ter esse type
+import { api } from '../../services/api'; // Importando a API
+import type { Operator, Company } from '../../types'; // Adicionei Company aos types
 
 interface OperatorUpdateModalProps {
   isOpen: boolean;
@@ -35,12 +37,37 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
     cpf: '',
   });
 
-  // Popula o formulário quando o modal abre ou o operator muda
+  // Estados para o Select de Empresa
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
+
+  // 1. Busca lista de empresas ao abrir o modal
+  useEffect(() => {
+    if (isOpen) {
+      const fetchCompanies = async () => {
+        try {
+          setLoadingCompanies(true);
+          // Ajuste a rota '/companies' conforme seu backend (ex: ?limit=100)
+          const response = await api.get('/companies');
+          // Tenta pegar data.data (paginado) ou data direto
+          setCompanies(response.data.data || response.data || []);
+        } catch (error) {
+          console.error("Erro ao buscar empresas", error);
+        } finally {
+          setLoadingCompanies(false);
+        }
+      };
+      fetchCompanies();
+    }
+  }, [isOpen]);
+
+  // 2. Popula o formulário quando o modal abre ou o operator muda
   useEffect(() => {
     if (isOpen && operator) {
       setFormData({
         name: operator.user?.name || '',
         email: operator.user?.email || '',
+        // Tenta pegar companyId direto ou via objeto company
         companyId: operator.companyId || '',
         region: operator.region || '',
         cpf: operator.user?.cpf || '',
@@ -58,11 +85,10 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prepara o payload limpando o documento que não pertence ao tipo selecionado
     const payload = {
       name: formData.name,
       email: formData.email,
-      company: formData.companyId,
+      companyId: formData.companyId, // Nome correto para o backend
       region: formData.region,
       cpf: formData.cpf
     };
@@ -74,7 +100,7 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
       <form 
         onSubmit={handleSubmit}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl animate-in fade-in zoom-in duration-200 flex flex-col overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl animate-in fade-in zoom-in duration-200 flex flex-col overflow-hidden max-h-[90vh] overflow-y-auto"
       >
         
         {/* Header com Gradiente Teal */}
@@ -126,9 +152,9 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
                 <Briefcase size={16} /> Dados Contratuais
               </h3>
 
-              {/* Tipo */}
+              {/* CPF */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Tipo de Contrato</label>
+                <label className="text-xs font-semibold text-gray-500 uppercase">CPF</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -141,19 +167,33 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
                 </div>
               </div>
 
-              {/* Empresa */}
+              {/* Empresa (SELECT) */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 uppercase">Empresa</label>
-                <div className="flex items-center gap-2">
-                    <Building className="text-gray-400" size={20} />
-                    <input
-                    type="text"
-                    name="company"
-                    value={formData.companyId}
-                    onChange={handleChange}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
-                    placeholder="Nome da empresa"
-                    />
+                <label className="text-xs font-semibold text-gray-500 uppercase">Empresa Vinculada</label>
+                <div className="relative w-full">
+                    {loadingCompanies ? (
+                        <div className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-400 text-sm animate-pulse">
+                            Carregando empresas...
+                        </div>
+                    ) : (
+                        <>
+                            <Building className="absolute left-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                            <select
+                                name="companyId"
+                                value={formData.companyId}
+                                onChange={handleChange}
+                                className="w-full pl-10 p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none appearance-none cursor-pointer"
+                            >
+                                <option value="">Selecione uma empresa</option>
+                                {companies.map((comp) => (
+                                    <option key={comp.id} value={comp.id}>
+                                        {comp.user.name} {comp.user.cnpj ? `(${comp.user.cnpj})` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3 text-gray-400 pointer-events-none" size={18} />
+                        </>
+                    )}
                 </div>
               </div>
             </div>
@@ -166,14 +206,14 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase">Email (Login)</label>
-                <div className="flex items-center gap-2">
-                    <Mail className="text-gray-400" size={20} />
+                <div className="relative">
+                    <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    className="w-full pl-10 p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
                     required
                     />
                 </div>
@@ -181,14 +221,14 @@ const OperatorUpdateModal: React.FC<OperatorUpdateModalProps> = ({
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-gray-500 uppercase">Região</label>
-                <div className="flex items-center gap-2">
-                    <MapPin className="text-gray-400" size={20} />
+                <div className="relative">
+                    <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
                     <input
                     type="text"
                     name="region"
                     value={formData.region}
                     onChange={handleChange}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
+                    className="w-full pl-10 p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
                     placeholder="Ex: Sul, Matriz..."
                     />
                 </div>

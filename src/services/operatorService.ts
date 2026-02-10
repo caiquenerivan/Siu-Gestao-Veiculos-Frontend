@@ -72,9 +72,7 @@ export const operatorService = {
           page,
           limit,
           }
-      });
-      console.log(response);
-      
+      });      
       return response;
     } catch (error) {
       console.error('Erro ao buscar motoristas da empresa:', error);

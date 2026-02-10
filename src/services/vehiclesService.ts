@@ -53,9 +53,7 @@ export const vehicleService = {
           page,
           limit,
         }
-      });
-      console.log(response);
-      
+      });      
       return response;
     } catch (error) {
       console.error('Erro ao buscar veículos da empresa:', error);

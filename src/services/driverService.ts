@@ -5,10 +5,6 @@ export const driverService = {
   create: async(driverData: CreateDriverData): Promise<Driver> => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Chave usada:', 'token');
-      console.log('Token bruto:', token);
-      console.log('Header montado:', `Bearer ${token}`);
-      // --- FIM DEBUG ---
 
       if (!token) {
         throw new Error('Usuário não autenticado (Token vazio)');
@@ -96,9 +92,7 @@ export const driverService = {
         page,
         limit,
         }
-    });
-    console.log(response);
-    
+    });    
     return response;
     } catch (error) {
     console.error('Erro ao buscar motoristas da empresa:', error);

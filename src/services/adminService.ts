@@ -57,7 +57,7 @@ export const adminService = {
       if (!token) {
         throw new Error('Usuário não encontrado');
       }
-      const response = await api.patch<Admin>(`/admins/by-uyser/${id}`,
+      const response = await api.get<Admin>(`/admins/by-user/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`

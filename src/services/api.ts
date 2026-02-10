@@ -61,18 +61,33 @@ export const profileService = {
     });
     return response.data;
   },
-  updateUserJson: async (id: string, data: any) => {
+  updateUserJson: async (id: string, data: any, role: string) => {
+    let response;
 
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('Usuário não autenticado');
     }
-    const response = await api.patch(`/admins/by-user/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    if (role === 'ADMIN') {
+      response = await api.patch(`/admins/by-user/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });   
+    } else if (role === 'COMPANY') {
+      response = await api.patch(`/companies/by-user/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });   
+    } else if (role === 'OPERADOR'){
+      response = await api.patch(`/operators/by-user/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });        
+    }
+    return response?.data;
   },
   updateDriverFormData: async (driverId: string, driverData: FormData ): Promise<Driver> => {
     try {

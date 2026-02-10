@@ -9,6 +9,7 @@ interface User {
   email: string;
   role: string;
   companyId?: string;
+  driverId?: string;
 }
 
 // Tipagem dos dados do Contexto

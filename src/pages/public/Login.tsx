@@ -18,13 +18,12 @@ export function Login() {
     useEffect(() => {
         if (signed && user && user.role) {
             const role = user?.role?.toUpperCase(); 
-            console.log(user.role);
             
             switch (role) {
                 case 'ADMIN':
                     navigate('/admin/dashboard');
                     break;
-                case 'OPERATOR':
+                case 'OPERADOR':
                     navigate('/operator/dashboard');
                     break;
                 case 'COMPANY':

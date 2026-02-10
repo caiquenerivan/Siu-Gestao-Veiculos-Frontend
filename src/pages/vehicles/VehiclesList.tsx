@@ -16,12 +16,12 @@ import { useEffect, useState } from "react";
 import VehicleCreateModal from "../../components/Vehicle/CreateVehicle";
 import VehicleUpdateModal from "../../components/Vehicle/EditVehicle";
 import VehicleInfoModal from "../../components/Vehicle/VehicleInfoModal";
-
 import { api } from "../../services/api";
 import type { Vehicle, VehiclesResponse, PaginationMeta, CreateVehicleData, UpdateVehicleData } from "../../types";
 import { useAuth } from "../../contexts/AuthContext";
 import { vehicleService } from "../../services/vehiclesService";
 import { driverService } from "../../services/driverService";
+import { operatorService } from "../../services/operatorService";
 
 export const VehicleList: React.FC = () => {
   // --- Estados ---
@@ -62,17 +62,19 @@ export const VehicleList: React.FC = () => {
     try {
       let vehiclesData;
       
+      console.log(user);
       
       if (user?.role === 'MOTORISTA') {
         // Motorista vê apenas seus veículos
         const driver = await driverService.findByUserId(user.id);
         vehiclesData = await vehicleService.findByDriverId(driver.id);
         const listaDeVeiculos = vehiclesData.data.data;
+        console.log(listaDeVeiculos);
         
         setVehicles(listaDeVeiculos);
         setLoading(false);
         return;
-      } else if (user?.role === 'COMPANY' || user?.role === 'OPERADOR') {
+      } else if (user?.role === 'COMPANY') {
         if(user.companyId){
           
           // Company e Operador veem veículos da empresa
@@ -82,7 +84,21 @@ export const VehicleList: React.FC = () => {
           setLoading(false);
         }
         return;
-      } else if(user?.role === 'ADMIN'){
+      } else if(user?.role === 'OPERADOR'){
+        const operatorData = await operatorService.findByUserId(user.id);
+
+        if(operatorData.companyId){
+          vehiclesData = await vehicleService.findByCompanyId(operatorData.companyId);
+        }
+        if (vehiclesData) {
+          const listaDeVeiculos = vehiclesData?.data.data || vehiclesData?.data || vehiclesData || null;
+          setVehicles(listaDeVeiculos);
+          setLoading(false);
+        }
+
+
+        return;
+      }else if(user?.role === 'ADMIN'){
         const response = await api.get<VehiclesResponse>(`/vehicles?page=${page}&limit=${LIMIT}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,

@@ -10,6 +10,7 @@ import { companyService } from '../../services/companyService';
 import { operatorService } from '../../services/operatorService';
 import { driverService } from '../../services/driverService';
 import { Link } from 'react-router-dom';
+import type { Company } from '../../types';
 
 // Interfaces simplificadas para o perfil
 interface ProfileData {
@@ -21,6 +22,8 @@ interface ProfileData {
     cnpj?: string;
   };
   // Campos específicos de cada role
+  name?: string;
+  email?: string;
   region?: string;
   cnpj?: string;
   phone?: string;
@@ -31,6 +34,7 @@ interface ProfileData {
   cnh?: string;
   status?: string;
   toxicologyExam?: string;
+  companyId?: string;
   company?: {
     user: {
       name: string;
@@ -42,6 +46,7 @@ export const UserProfile: React.FC = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [company, setCompany] = useState<Company | null>(null)
 
   // Define cores e ícones baseados no Role
   const getRoleTheme = () => {
@@ -49,7 +54,7 @@ export const UserProfile: React.FC = () => {
       case 'ADMIN': return { color: 'violet', icon: <ShieldCheck size={40} />, label: 'Administrador' };
       case 'COMPANY': return { color: 'teal', icon: <Building2 size={40} />, label: 'Empresa Parceira' };
       case 'OPERADOR': return { color: 'indigo', icon: <Briefcase size={40} />, label: 'Operador Logístico' };
-      case 'DRIVER': return { color: 'blue', icon: <Truck size={40} />, label: 'Motorista' };
+      case 'MOTORISTA': return { color: 'blue', icon: <Truck size={40} />, label: 'Motorista' };
       default: return { color: 'gray', icon: <User size={40} />, label: 'Usuário' };
     }
   };
@@ -62,8 +67,7 @@ export const UserProfile: React.FC = () => {
         return '/company/editarperfil';
       case 'OPERADOR':
         return '/operator/editarperfil';
-      case 'MOTORISTA': // Ou 'DRIVER', verifique como vem do seu banco
-      case 'DRIVER':
+      case 'MOTORISTA': 
         return '/driver/editarperfil';
       default:
         return '/login';
@@ -86,18 +90,18 @@ export const UserProfile: React.FC = () => {
         if (user.role === 'ADMIN') {
           // Exemplo: GET /admins/me ou busca pelo ID
           // Assumindo que a API retorna o objeto completo
-           response = await adminService.findByUserId(user.id); // Ajuste a rota conforme seu backend
+          response = await adminService.findByUserId(user.id); // Ajuste a rota conforme seu backend
         } 
         else if (user.role === 'COMPANY') {
             if (user.companyId) {
-                response = await companyService.findById(user.companyId); // Ajuste a rota conforme seu backend
+              response = await companyService.findById(user.companyId); // Ajuste a rota conforme seu backend
             }
         }
         else if (user.role === 'OPERADOR') {
-           response = await operatorService.findByUserId(user.id); // Ajuste a rota conforme seu backend
+          response = await operatorService.findByUserId(user.id); // Ajuste a rota conforme seu backend
         }
-        else if (user.role === 'DRIVER') {
-           response = await driverService.findByUserId(user.id); // Ajuste a rota conforme seu backend
+        else if (user.role === 'MOTORISTA') {
+          response = await driverService.findByUserId(user.id); // Ajuste a rota conforme seu backend
         }
 
         const userProfile = response || response?.data || null;
@@ -119,6 +123,21 @@ export const UserProfile: React.FC = () => {
 
     fetchProfileData();
   }, [user]);
+
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      if (profile?.companyId && !company) {
+        try {
+          const response = await companyService.findById(profile.companyId);
+          setCompany(response);
+        } catch (error) {
+          console.error("Erro ao buscar empresa vinculada", error);
+        }
+      }
+    };
+
+    fetchCompanyData();
+  }, [profile, company]);
 
   if (loading) {
     return (
@@ -164,10 +183,12 @@ export const UserProfile: React.FC = () => {
     </>
   );
 
+
   const renderOperatorFields = () => (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem label="Empresa Vinculada" icon={<Building2 />} value={profile.company?.user?.name} />
+        
+        <InfoItem label="Empresa Vinculada" icon={<Building2 />} value={company?.user.name} />
         <InfoItem label="Região" icon={<MapPin />} value={profile.region} />
         <InfoItem label="CPF" icon={<FileText />} value={profile.user.cpf} />
       </div>
@@ -175,23 +196,21 @@ export const UserProfile: React.FC = () => {
   );
 
   const renderDriverFields = () => (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InfoItem label="CNH" icon={<FileText />} value={profile.cnh} />
-        <InfoItem label="Status" icon={<Activity />} 
-          value={
-            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${profile.status === 'ATIVO' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-               {profile.status || 'N/A'}
-            </span>
-          } 
-          isComponent
-        />
-        <InfoItem label="Exame Toxicológico" icon={<Calendar />} 
-            value={profile.toxicologyExam ? new Date(profile.toxicologyExam).toLocaleDateString() : 'Não informado'} 
-        />
-        <InfoItem label="Empresa Vinculada" icon={<Building2 />} value={profile.company?.user?.name || 'Autônomo / Sem vínculo'} />
-      </div>
-    </>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <InfoItem label="CNH" icon={<FileText />} value={profile.cnh} />
+      <InfoItem label="Status" icon={<Activity />} 
+        value={
+          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${profile.status === 'ATIVO' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+             {profile.status || 'N/A'}
+          </span>
+        } 
+        isComponent
+      />
+      <InfoItem label="Exame Toxicológico" icon={<Calendar />} 
+          value={profile.toxicologyExam ? new Date(profile.toxicologyExam).toLocaleDateString() : 'Não informado'} 
+      />
+      <InfoItem label="Empresa Vinculada" icon={<Building2 />} value={profile.company?.user?.name || 'Autônomo / Sem vínculo'} />
+    </div>
   );
 
   return (
@@ -221,13 +240,13 @@ export const UserProfile: React.FC = () => {
 
                 {/* Nome e Role */}
                 <div className="flex-1 mb-2 pt-4 md:pt-0">
-                    <h1 className="text-2xl font-bold text-gray-900">{profile.user.name}</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">{profile.name || profile.user.email}</h1>
                     <div className="flex flex-col md:flex-row md:items-center gap-2 mt-1">
                         <span className={`inline-flex items-center  px-2.5 py-0.5 rounded-full text-xs font-medium bg-${theme.color}-100 text-${theme.color}-800 uppercase tracking-wide`}>
                             {theme.label}
                         </span>
                         <div className="flex items-center gap-1 text-gray-500 text-sm">
-                            <Mail size={14} /> {profile.user.email}
+                            <Mail size={14} /> { profile.email || profile.user.email}
                         </div>
                     </div>
                 </div>
@@ -242,7 +261,7 @@ export const UserProfile: React.FC = () => {
                 {user?.role === 'ADMIN' && renderAdminFields()}
                 {user?.role === 'COMPANY' && renderCompanyFields()}
                 {user?.role === 'OPERADOR' && renderOperatorFields()}
-                {user?.role === 'DRIVER' && renderDriverFields()}
+                {user?.role === 'MOTORISTA' && renderDriverFields()}
             </div>
 
             {/* Footer / Botão de Editar (Opcional) */}

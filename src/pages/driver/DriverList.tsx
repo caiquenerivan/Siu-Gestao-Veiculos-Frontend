@@ -8,6 +8,7 @@ import { api } from "../../services/api";
 import DriverUpdateModal from "../../components/Driver/EditDriver";
 import { useAuth } from "../../contexts/AuthContext";
 import { driverService } from "../../services/driverService";
+import { operatorService } from "../../services/operatorService";
 
 
 
@@ -48,6 +49,13 @@ export const DriverList: React.FC = () => {
         });      
       } else if ((user?.role === 'COMPANY' || user?.role === 'OPERADOR')&& companyId){
         response = await driverService.findByCompanyId(companyId)
+      } else if (user?.role === 'OPERADOR'){
+        const operatorData = await operatorService.findByUserId(user.id);
+        
+        if(operatorData.companyId){
+          response = await driverService.findByCompanyId(operatorData.companyId);
+        }
+        
       }
 
       const listaDeMotoristas = (response?.data as any).data || response?.data || [];
