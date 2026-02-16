@@ -222,7 +222,7 @@ export const DriverList: React.FC = () => {
         formData.append('cpf', data.cpf);
       }
       if (data.companyId) {
-        formData.append('cpf', data.cpf);
+        formData.append('companyId', data.companyId);
       }
       if (data.toxicologyExam) {
         formData.append('toxicologyExam', new Date(data.toxicologyExam).toISOString());
@@ -232,6 +232,8 @@ export const DriverList: React.FC = () => {
       if (data.password && data.password.trim() !== '') {
         formData.append('password', data.password);
       }
+
+      
 
       // 3. Envia o PATCH
       // Note que não usamos 'jsonData' aqui para simplificar, enviamos tudo solto
