@@ -39,6 +39,7 @@ export interface CreateDriverData {
   password: string;
   cnh: string;
   companyId?: string;
+  cpf?: string;
   status: string;
   photoUrl: string;
   toxicologyExam: Date | null;
@@ -49,6 +50,7 @@ export interface UpdateDriverData {
   name: string;
   email: string;
   password?: string;
+  cpf?: string;
   cnh: string;
   company: string;
   status: string;
