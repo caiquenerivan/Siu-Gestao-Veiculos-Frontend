@@ -22,7 +22,7 @@ export function AppRoutes() {
     <Routes>
       {/* Rotas Públicas */}
       <Route path="/login" element={<Login />} />
-      <Route path="/p/:token" element={<PublicDriverInfo />} />
+      <Route path="/drivers/qrcode/:token" element={<PublicDriverInfo />} />
       <Route path="/signup/company" element={<SignUpCompany />} />
       <Route path="/signup/driver" element={<SignUpDriver />} />
 
