@@ -11,7 +11,7 @@ const DriverQRCodeModal = ({ driver, onClose }: { driver: Driver; onClose: () =>
 
   // URL Pública que o cliente vai acessar (Ajuste para seu domínio real em produção)
   // Monta a URL fixa. Ex: https://frotagest.com/drivers/qrcode/xyz-123
-  const urlPerfil = `https://seusite.com/drivers/qrcode/${driver.publicToken}`;
+  const urlPerfil = `https://siu.inf.br/drivers/qrcode/${driver.publicToken}`;
   
   // Referência para permitir download (opcional)
   const svgRef = useRef(null);
