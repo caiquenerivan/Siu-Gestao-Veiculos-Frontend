@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CheckCircle, XCircle, User, Truck, Phone, AlertOctagon, HelpCircle } from 'lucide-react';
 import { api } from '../../services/api';
+import type { Vehicle } from '../../types';
 
 export default function PublicDriverInfo() {
   // Agora pegamos o 'token' da URL, não mais o 'id'
@@ -26,6 +27,7 @@ export default function PublicDriverInfo() {
         
         // Se chegou aqui, é sucesso (status 200)
         setDriverData(response.data);
+        console.log("Dados do motorista encontrados:", response.data);
         setPageState('found');
 
       } catch (error: any) {
@@ -111,7 +113,7 @@ export default function PublicDriverInfo() {
           </div>
 
           <h2 className="mt-4 text-2xl font-bold text-gray-800">{driverData.user.name}</h2>
-          <p className="text-gray-500 font-medium">{driverData.company}</p>
+          <p className="text-gray-500 font-medium">{driverData.company.name}</p>
 
           <div className={`mt-4 inline-block px-4 py-2 rounded-full font-bold text-sm ${
             status === 'ATIVO'
@@ -124,6 +126,8 @@ export default function PublicDriverInfo() {
             }
           </div>
         </div>
+
+        {/*
 
         <div className="border-t border-gray-100 bg-slate-50 px-6 py-6 space-y-4">
           <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
@@ -140,6 +144,63 @@ export default function PublicDriverInfo() {
             </div>
           </div>
 
+          <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+            <User className="text-slate-400" size={20} />
+            <div>
+              <p className="text-xs text-gray-400 font-bold uppercase ">CNH</p>
+              <p className="font-semibold text-gray-700">
+                {driverData.cnh}
+              </p>
+            </div>
+            <div className="text-right ml-auto">
+              <p className="text-xs text-gray-400 font-bold uppercase">Toxicológico Validade</p>
+              <p className="font-semibold text-gray-700">
+                {formatarData(driverData.toxicologyExam)}
+              </p>
+            </div>
+          </div>
+        </div>
+        */}
+
+        <div className="border-t border-gray-100 bg-slate-50 px-6 py-6 space-y-4">
+          {/* Verifica se o array existe e tem itens antes de fazer o map */}
+          {driverData?.vehicle && driverData.vehicle.length > 0 ? (
+            driverData.vehicle.map((veiculo: Vehicle, index: number) => (
+              <div 
+                key={index} // O React exige uma "key" única para itens de uma lista
+                className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+              >
+                <div className="flex items-center gap-3">
+                  <Truck className="text-slate-400" size={20} />
+                  <div>
+                    <p className="text-xs text-gray-400 font-bold uppercase">Veículo</p>
+                    <p className="font-semibold text-gray-700">
+                      {veiculo.model || "Modelo não informado"}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400 font-bold uppercase">Placa</p>
+                  <p className="font-mono font-bold text-slate-800 text-lg">
+                    {veiculo.plate || "S/ Placa"}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            /* Feedback visual caso o motorista não tenha nenhum veículo no array */
+            <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+              <div className="flex items-center gap-3">
+                <Truck className="text-slate-400" size={20} />
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase">Veículo</p>
+                  <p className="font-semibold text-gray-700">Nenhum veículo cadastrado</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Os dados do motorista (CNH/Toxicológico) continuam normais aqui embaixo */}
           <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
             <User className="text-slate-400" size={20} />
             <div>
