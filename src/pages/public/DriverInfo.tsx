@@ -113,7 +113,7 @@ export default function PublicDriverInfo() {
           </div>
 
           <h2 className="mt-4 text-2xl font-bold text-gray-800">{driverData.user.name}</h2>
-          <p className="text-gray-500 font-medium">{driverData.company.name}</p>
+          <p className="text-gray-500 font-medium">{driverData?.company?.name}</p>
 
           <div className={`mt-4 inline-block px-4 py-2 rounded-full font-bold text-sm ${
             status === 'ATIVO'
@@ -219,7 +219,7 @@ export default function PublicDriverInfo() {
         </div>
 
         <div className="p-6 bg-white border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-400 mb-4">Validado em: {formatarData(driverData.user.updatedAt)}</p>
+          <p className="text-xs text-gray-400 mb-4">Validado em: {formatarData(driverData.user?.updatedAt)}</p>
           <button className="w-full bg-red-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-colors">
             <Phone size={18} />
             Reportar Irregularidade
