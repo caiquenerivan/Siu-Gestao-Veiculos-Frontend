@@ -113,7 +113,7 @@ export default function PublicDriverInfo() {
           </div>
 
           <h2 className="mt-4 text-2xl font-bold text-gray-800">{driverData.user.name}</h2>
-          <p className="text-gray-500 font-medium">{driverData?.company?.name}</p>
+          <p className="text-gray-500 font-medium">{driverData?.company?.user?.name || "Motorista Autônomo"}</p>
 
           <div className={`mt-4 inline-block px-4 py-2 rounded-full font-bold text-sm ${
             status === 'ATIVO'
